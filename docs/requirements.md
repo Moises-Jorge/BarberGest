@@ -23,5 +23,26 @@ Desenvolver um sistema para gerir uma barbearia com foco no cliente, barbeiro, s
 - RF04 - Agendar Servicos
 - RF05 - Consultar Agenda
 - RF06 - Cancelar Agendamento
-- RF05 - Registrar Pagamentos
-- RF06 - Emitir Relatorio (diario, semanal, mensal e Anual)
+- RF07 - Registrar Pagamentos
+- RF08 - Emitir Relatorio (diario, semanal, mensal e Anual)
+
+## Requisitos Não Funcionais
+- RNF01 - O sistema deve possuir autenticação (segurança: Auntenticidade).
+- RNF02 - Apenas utilizadores autorizados poderão aceder determinadas funcionalidades do sistema (segurança: Confidencialidade).
+- RNF03 - O sistema deve funcionar na web e em dispositivos móveis (Responsividade).
+- RNF04 - O tempo de resposta deve ser inferior a 2 segundos (Desempenho).
+- RNF05 - O sistema deve gerar logs estruturados para cada ação realizada no sistema (segurança: Irretratabilidade)
+
+## Regras de Negócio
+- RN01 - Cada utilizador do sistema deve possuir apenas uma conta.
+- RN02 - Barbeiros só podem ser cadastrados e exluidos pelo administrador.
+- RN03 - Barbeiros podem ver e editar os seus perfis.
+- RN04 - Servicos só podem ser cadastrados, alterados e excluidos pelo administrador.
+- RN05 - Clientes e barbeiros podem visualizar os servicos.
+- RN06 - O Cliente deve se cadastrar e gerir os seus dados sozinho.
+- RN07 - O cliente deve conseguir agendar servicos escolhendo o barbeiro, a data e a hora.
+- RN08 - O Barbeiro deve conseguir consultar a sua agenda e alterar o status (pendente -> em execucao -> concluido)
+- RN09 - Apos 15 min, se o status de um agendamento nao mudar, devera ser cancelado automaticamente liberando aquele horario
+- RN10 - O sistema nao pode permitir que dois clientes agendem com o mesmo barbeiro ao mesmo tempo (deve lidar com concorrencia)
+- RN11 - A aplicacao movel eh destinada aos clientes e barbeiros.
+- RN12 - A aplicacao web eh destinada ao administrador (onde ele podera realizar as suas actividades, ver dashboard de tudo, ver e emitir relatorios)
