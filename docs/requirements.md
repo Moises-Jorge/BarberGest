@@ -46,3 +46,8 @@ Desenvolver um sistema para gerir uma barbearia com foco no cliente, barbeiro, s
 - RN10 - O sistema nao pode permitir que dois clientes agendem com o mesmo barbeiro ao mesmo tempo (deve lidar com concorrencia)
 - RN11 - A aplicacao movel eh destinada aos clientes e barbeiros.
 - RN12 - A aplicacao web eh destinada ao administrador (onde ele podera realizar as suas actividades, ver dashboard de tudo, ver e emitir relatorios)
+
+## Duvidas para o cliente do sistema
+1. Existe alguma politica de fidelidade?
+	* O cliente que realiza 5 servicos ou mais ganha creditos para desconto no proximo servico que adendar -> ***TrapStar BarberShop***
+	* O cliente que traz/indica 3+ clientes, tambem ganha creditos de descontos para o proximo servico que agendar -> ***TrapStar BarberShop***
