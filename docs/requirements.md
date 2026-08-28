@@ -2,7 +2,7 @@
 
 ## Objectivo
 
-Desenvolver um sistema para gerir uma barbearia com foco no cliente, barbeiro, servicos e pagamentos, substituindo o controle manual da ordem de chegada dos clientes nao supervisionada.
+Desenvolver um sistema para gerir uma barbearia com foco no cliente, barbeiro, serviços e pagamentos, substituindo o controle manual da ordem de chegada dos clientes não supervisionada.
 
 ## Utilizadores do Sistema
 - Administrador
@@ -13,14 +13,14 @@ Desenvolver um sistema para gerir uma barbearia com foco no cliente, barbeiro, s
 - Controle manual da ordem de chegada dos clientes
 - Ausencia de agenda de trabalho do barbeiro
 - Filas grandes e muito tempo de espera
-- Servicos e precos descritos em papel
+- Serviços e preços descritos em papel
 - Controle manual de pagamentos
 
 ## Requisitos Funcionais
 - RF01 - Gerir Barbeiro (CRUD)
 - RF02 - Gerir Cliente (CRUD)
-- RF03 - Gerir Servico (CRUD)
-- RF04 - Agendar Servicos
+- RF03 - Gerir Serviço (CRUD)
+- RF04 - Agendar Serviços
 - RF05 - Consultar Agenda
 - RF06 - Cancelar Agendamento
 - RF07 - Registrar Pagamentos
@@ -37,17 +37,17 @@ Desenvolver um sistema para gerir uma barbearia com foco no cliente, barbeiro, s
 - RN01 - Cada utilizador do sistema deve possuir apenas uma conta.
 - RN02 - Barbeiros só podem ser cadastrados e exluidos pelo administrador.
 - RN03 - Barbeiros podem ver e editar os seus perfis.
-- RN04 - Servicos só podem ser cadastrados, alterados e excluidos pelo administrador.
-- RN05 - Clientes e barbeiros podem visualizar os servicos.
+- RN04 - Serviços só podem ser cadastrados, alterados e excluidos pelo administrador.
+- RN05 - Clientes e barbeiros podem visualizar os serviços.
 - RN06 - O Cliente deve se cadastrar e gerir os seus dados sozinho.
-- RN07 - O cliente deve conseguir agendar servicos escolhendo o barbeiro, a data e a hora.
-- RN08 - O Barbeiro deve conseguir consultar a sua agenda e alterar o status (pendente -> em execucao -> concluido)
-- RN09 - Apos 15 min, se o status de um agendamento nao mudar, devera ser cancelado automaticamente liberando aquele horario
-- RN10 - O sistema nao pode permitir que dois clientes agendem com o mesmo barbeiro ao mesmo tempo (deve lidar com concorrencia)
-- RN11 - A aplicacao movel eh destinada aos clientes e barbeiros.
-- RN12 - A aplicacao web eh destinada ao administrador (onde ele podera realizar as suas actividades, ver dashboard de tudo, ver e emitir relatorios)
+- RN07 - O cliente deve conseguir agendar serviços escolhendo o barbeiro, a data e a hora.
+- RN08 - O Barbeiro deve conseguir consultar a sua agenda e alterar o status (pendente -> em execução -> concluido)
+- RN09 - Apos 15 min, se o status de um agendamento não mudar, deverá ser cancelado automaticamente liberando aquele horario
+- RN10 - O sistema não pode permitir que dois clientes agendem com o mesmo barbeiro ao mesmo tempo (deve lidar com concorrencia)
+- RN11 - A aplicação móvel é destinada aos clientes e barbeiros.
+- RN12 - A aplicação web é destinada ao administrador (onde ele poderá realizar as suas actividades, ver dashboard de tudo, ver e emitir relatorios)
 
 ## Duvidas para o cliente do sistema
 1. Existe alguma politica de fidelidade?
-	* O cliente que realiza 5 servicos ou mais ganha creditos para desconto no proximo servico que adendar -> ***TrapStar BarberShop***
-	* O cliente que traz/indica 3+ clientes, tambem ganha creditos de descontos para o proximo servico que agendar -> ***TrapStar BarberShop***
+	* O cliente que realiza 5 serviços ou mais ganha creditos para desconto no proximo serviço que adendar -> ***TrapStar BarberShop***
+	* O cliente que traz/indica 3+ clientes, tambem ganha creditos de descontos para o proximo serviço que agendar -> ***TrapStar BarberShop***
