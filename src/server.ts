@@ -14,7 +14,7 @@ app.use(express.json());
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec));
 
 // Rotas da API
-app.use('/barbeiros', barbeiroRoutes);
+app.use('/api/barbeiros', barbeiroRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Hello, World!' });
