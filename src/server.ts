@@ -12,5 +12,5 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor a rodar em http://localhost:${PORT}`);
+  console.log(`Servidor a rodar em http://localhost:${PORT}`);
 });
