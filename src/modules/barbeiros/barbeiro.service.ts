@@ -1,5 +1,5 @@
 import { barbeiroRepository, BarbeiroRepository } from "./barbeiro.repository.js";
-import { type Barbeiro, type CreateBarbeiro, type UpdateBarbeiro, type BarbeiroResponse } from "./barbeiro.types.js";
+import type { Barbeiro, CreateBarbeiro, UpdateBarbeiro, BarbeiroResponse } from "./barbeiro.types.js";
 import bcrypt from "node:crypto";
 
 export class BarbeiroService {

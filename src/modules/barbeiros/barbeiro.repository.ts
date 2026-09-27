@@ -1,4 +1,4 @@
-import { type Barbeiro, type CreateBarbeiro, type UpdateBarbeiro } from './barbeiro.types.js';
+import type { Barbeiro, CreateBarbeiro, UpdateBarbeiro } from './barbeiro.types.js';
 import crypto from 'node:crypto';
 
 export class BarbeiroRepository {
