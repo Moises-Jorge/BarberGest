@@ -44,8 +44,13 @@ export class BarbeiroRepository {
         return true;
     }
 
-    
-
-
-
+    public checkHour(id: string, hour: string): boolean {
+        const barbeiro = this.getByID(id);
+        if (!barbeiro) {
+            return false;
+        }
+        return hour >= barbeiro.h_entrada && hour <= barbeiro.h_saida;
+    }
 }
+
+export const barbeiroRepository = new BarbeiroRepository();
