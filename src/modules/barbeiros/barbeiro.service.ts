@@ -2,7 +2,7 @@ import { barbeiroRepository, BarbeiroRepository } from "./barbeiro.repository.js
 import { type Barbeiro, type CreateBarbeiro, type UpdateBarbeiro, type BarbeiroResponse } from "./barbeiro.types.js";
 import bcrypt from "node:crypto";
 
-export default class BarbeiroService {
+export class BarbeiroService {
    constructor(private readonly repository: BarbeiroRepository = barbeiroRepository) {}
 
    private sanitizeBarbeiro(barbeiro: Barbeiro): BarbeiroResponse {
