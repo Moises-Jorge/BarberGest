@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Barbershop management system",
   "main": "index.js",
+  "type": "module",
   "directories": {
     "doc": "docs"
   },
