@@ -31,6 +31,10 @@ export class BarbeiroRepository {
         return this.barbeiros.find((b) => b.nome === nome);
     }
 
+    public getByPhone(telefone: string): Barbeiro | undefined {
+        return this.barbeiros.find((b) => b.telefone === telefone);
+    }
+
     public getAll(): Barbeiro[] {
         return [...this.barbeiros];
     }
