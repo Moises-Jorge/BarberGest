@@ -95,10 +95,24 @@ export default class BarbeiroService {
         }
     }
 
-    public async checkBarbeiroAvailability(id: string, hour: string): Promise<boolean> {
+    public async checkBarbeiroAvailability(id: string, dataHour: string): Promise<boolean> {
+        const existingBarbeiro = this.repository.getByID(id);
 
+        if (!existingBarbeiro) {
+            throw new Error("Barbeiro não encontrado.");
+        }
 
+        const hours = String(dataHour.getHours()).padStart(2, '0');
+        const minutes = String(dataHour.getMinutes()).padStart(2, '0');
+        const hourString = `${hours}:${minutes}`;
+
+        const isAvailable = this.repository.checkHour(id, hourString);
+        if (!isAvailable) {
+            throw new Error("Barbeiro não está disponível neste horário.");
+        }
+
+        return isAvailable;
+    }
 }
 
-
-export const barbeiroService = new BarbeiroService(barbeiroRepository);
+export const barbeiroService = new BarbeiroService();
