@@ -1,6 +1,6 @@
 import { barbeiroRepository, BarbeiroRepository } from "./barbeiro.repository.js";
 import type { Barbeiro, CreateBarbeiro, UpdateBarbeiro, BarbeiroResponse } from "./barbeiro.types.js";
-import bcrypt from "node:crypto";
+import bcrypt from "bcryptjs";
 
 export class BarbeiroService {
    constructor(private readonly repository: BarbeiroRepository = barbeiroRepository) {}
@@ -95,7 +95,7 @@ export class BarbeiroService {
         }
     }
 
-    public async checkBarbeiroAvailability(id: string, dataHour: string): Promise<boolean> {
+    public async checkBarbeiroAvailability(id: string, dataHour: Date): Promise<boolean> {
         const existingBarbeiro = this.repository.getByID(id);
 
         if (!existingBarbeiro) {

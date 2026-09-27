@@ -27,8 +27,13 @@ export class BarbeiroController {
     public getById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { id } = req.params;
-            const barbeiro = await this.service.getBarbeiroById(id);
 
+            if (!id) {
+                res.status(400).json({ error: "ID do barbeiro não fornecido." });
+                return;
+            }
+
+            const barbeiro = await this.service.getBarbeiroById(id);
             if (!barbeiro) {
                 res.status(404).json({ error: "Barbeiro não encontrado." });
                 return;

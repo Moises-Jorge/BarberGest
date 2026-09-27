@@ -1,5 +1,5 @@
 import type { Barbeiro, CreateBarbeiro, UpdateBarbeiro } from './barbeiro.types.js';
-import crypto from 'node:crypto';
+import bcrypt from "bcryptjs";
 
 export class BarbeiroRepository {
     private barbeiros: Barbeiro[] = [];
