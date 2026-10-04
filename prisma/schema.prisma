@@ -20,3 +20,14 @@ model Barbeiro {
 
   @@map("barbeiros")
 }
+
+model Cliente {
+  id        String @id @default(uuid())
+  nome      String
+  senha     String
+  telefone  String @unique
+  created_at DateTime @default(now()) @map("created_at")
+  updated_at DateTime @updatedAt @map("updated_at")
+
+  @@map("clientes")
+}
