@@ -88,6 +88,17 @@ http://localhost:3000
 | `PUT`    | `/barbeiros/:id` | Atualizar dados de um barbeiro |
 | `DELETE` | `/barbeiros/:id` | Remover um barbeiro            |
 
+### Módulo Barbeiros
+
+| Método   | Rota             | Descrição                      |
+| -------- | ---------------- | ------------------------------ |
+| `POST`   | `/clientes`     | Registar um novo cliente      |
+| `GET`    | `/clientes`     | Listar todos os clientes      |
+| `GET`    | `/clientes/:id` | Buscar cliente por ID         |
+| `PUT`    | `/clientes/:id` | Atualizar dados de um cliente |
+| `DELETE` | `/clientes/:id` | Remover um cliente            |
+
+
 > **Nota:** Podes acessar a documentação iterativa em:
 >
 > `http://localhost:3000/api-docs`
