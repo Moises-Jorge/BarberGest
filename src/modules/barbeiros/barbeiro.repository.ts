@@ -1,58 +1,60 @@
+import { prisma } from '../../database/prisma.js';
 import type { Barbeiro, CreateBarbeiro, UpdateBarbeiro } from './barbeiro.types.js';
 import bcrypt from "bcryptjs";
 
 export class BarbeiroRepository {
-    private barbeiros: Barbeiro[] = [];
 
-    public create(barbeiro: CreateBarbeiro): Barbeiro {
-        const newBarbeiro: Barbeiro = {
-            id: crypto.randomUUID(),
-            ...barbeiro,
-        };
-        this.barbeiros.push(newBarbeiro);
+    public async create(barbeiro: CreateBarbeiro): Promise<Barbeiro> {
+        const hashedPassword = await bcrypt.hash(barbeiro.senha, 10);
+        const newBarbeiro = await prisma.barbeiro.create({
+            data: {
+                ...barbeiro,
+                senha: hashedPassword,
+            },
+        });
         return newBarbeiro;
     }
 
-    public update(id: string, barbeiro: UpdateBarbeiro): Barbeiro | undefined {
-        const index = this.barbeiros.findIndex((b) => b.id === id);
-        if (index === -1) {
-            return undefined;
-        }
-        const updatedBarbeiro = { ...this.barbeiros[index], ...barbeiro };
-        this.barbeiros[index] = updatedBarbeiro;
-        return updatedBarbeiro;
+    public async update(id: string, barbeiro: UpdateBarbeiro): Promise<Barbeiro | undefined> {
+       return await prisma.barbeiro.update({
+        where: { id },
+        data: barbeiro,
+      });
     }
 
-    public getByID(id: string): Barbeiro | undefined {
-        return this.barbeiros.find((b) => b.id === id);
+    public async getByID(id: string): Promise<Barbeiro | undefined> {
+        return await prisma.barbeiro.findUnique({
+            where: { id },
+        });
     }
 
-    public getByName(nome: string): Barbeiro | undefined {
-        return this.barbeiros.find((b) => b.nome === nome);
+    public async getByName(nome: string): Promise<Barbeiro | undefined> {
+        return await prisma.barbeiro.findUnique({
+            where: { nome },
+        });
     }
 
-    public getByPhone(telefone: string): Barbeiro | undefined {
-        return this.barbeiros.find((b) => b.telefone === telefone);
+    public async getByPhone(telefone: string): Promise<Barbeiro | undefined> {
+        return await prisma.barbeiro.findUnique({
+            where: { telefone },
+        });
     }
 
-    public getAll(): Barbeiro[] {
-        return [...this.barbeiros];
+    public async getAll(): Promise<Barbeiro[]> {
+        return await prisma.barbeiro.findMany();
     }
 
-    public remove(id: string): boolean {
-        const index = this.barbeiros.findIndex((b) => b.id === id);
-        if (index === -1) {
-            return false;
-        }
-        this.barbeiros.splice(index, 1);
+    public async remove(id: string): Promise<boolean> {
+        await prisma.barbeiro.delete({
+            where: { id },
+        });
         return true;
     }
 
-    public checkHour(id: string, hour: string): boolean {
-        const barbeiro = this.getByID(id);
-        if (!barbeiro) {
+    public async checkHour(barbeiroId: string,  hour: String): Promise<boolean> {
+        const barbeiro = await this.getByID(barbeiroId);
+        if (!barbeiro)
             return false;
-        }
         return hour >= barbeiro.h_entrada && hour <= barbeiro.h_saida;
     }
 }
