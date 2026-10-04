@@ -20,7 +20,8 @@ const options: swaggerJsdoc.Options = {
          './src/modules/**/*.controllers.ts',
          './src/modules/**/*.service.ts',
          './src/modules/**/*.models.ts',
-         './src/modules/**/*.repository.ts'
+         './src/modules/**/*.repository.ts',
+         './src/server.ts'
   ],
 };
 
