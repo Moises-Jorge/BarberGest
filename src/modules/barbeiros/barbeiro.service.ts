@@ -23,7 +23,7 @@ export class BarbeiroService {
    }
 
    public async createBarbeiro(barbeiro: CreateBarbeiro): Promise<BarbeiroResponse> {
-            const barbeiroExists = this.repository.getByPhone(barbeiro.telefone);
+            const barbeiroExists = await this.repository.getByPhone(barbeiro.telefone);
 
             if (barbeiroExists) {
                 throw new Error("Já existe um barbeiro com este telefone.");
@@ -33,17 +33,17 @@ export class BarbeiroService {
 
             const passHash = await bcrypt.hash(barbeiro.senha, 8);
 
-            const newBarbeiro = this.repository.create({ ...barbeiro, senha: passHash });
+            const newBarbeiro = await this.repository.create({ ...barbeiro, senha: passHash });
             return this.sanitizeBarbeiro(newBarbeiro);
    }
 
    public async getBarbeiros(): Promise<BarbeiroResponse[]> {
-      const barbeiros = this.repository.getAll();
+      const barbeiros = await this.repository.getAll();
       return barbeiros.map((barbeiro) => this.sanitizeBarbeiro(barbeiro));
    }
 
    public async getBarbeiroById(id: string): Promise<BarbeiroResponse | undefined> {
-      const barbeiro = this.repository.getByID(id);
+      const barbeiro = await this.repository.getByID(id);
 
       if (!barbeiro) {
          throw new Error("Barbeiro não encontrado.");
@@ -53,14 +53,14 @@ export class BarbeiroService {
    }
 
    public async updateBarbeiro(id: string, barbeiro: UpdateBarbeiro): Promise<BarbeiroResponse> {
-      const existingBarbeiro = this.repository.getByID(id);
+      const existingBarbeiro = await this.repository.getByID(id);
 
       if (!existingBarbeiro) {
          throw new Error("Barbeiro não encontrado.");
       }
 
       if (barbeiro.telefone && barbeiro.telefone !== existingBarbeiro.telefone) {
-         const barbeiroExists = this.repository.getByPhone(barbeiro.telefone);
+         const barbeiroExists = await this.repository.getByPhone(barbeiro.telefone);
 
          if (barbeiroExists) {
             throw new Error("Já existe um barbeiro com este telefone.");
@@ -78,7 +78,7 @@ export class BarbeiroService {
          updatedBarber.senha = passHash;
       }
 
-      const updatedBarbeiro = this.repository.update(id, updatedBarber);
+      const updatedBarbeiro = await this.repository.update(id, updatedBarber);
       
       if (!updatedBarbeiro) {
          throw new Error("Erro ao atualizar dados do barbeiro.");
@@ -88,15 +88,17 @@ export class BarbeiroService {
     }
 
     public async deleteBarbeiro(id: string): Promise<void> {
-        const existingBarbeiro = this.repository.remove(id);
+        const existingBarbeiro = await this.repository.getByID(id);
 
         if (!existingBarbeiro) {
             throw new Error("Barbeiro não encontrado.");
         }
+
+        await this.repository.remove(id);
     }
 
     public async checkBarbeiroAvailability(id: string, dataHour: Date): Promise<boolean> {
-        const existingBarbeiro = this.repository.getByID(id);
+        const existingBarbeiro = await this.repository.getByID(id);
 
         if (!existingBarbeiro) {
             throw new Error("Barbeiro não encontrado.");
@@ -106,7 +108,7 @@ export class BarbeiroService {
         const minutes = String(dataHour.getMinutes()).padStart(2, '0');
         const hourString = `${hours}:${minutes}`;
 
-        const isAvailable = this.repository.checkHour(id, hourString);
+        const isAvailable = await this.repository.checkHour(id, hourString);
         if (!isAvailable) {
             throw new Error("Barbeiro não está disponível neste horário.");
         }

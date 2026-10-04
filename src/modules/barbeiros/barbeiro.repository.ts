@@ -5,12 +5,8 @@ import bcrypt from "bcryptjs";
 export class BarbeiroRepository {
 
     public async create(barbeiro: CreateBarbeiro): Promise<Barbeiro> {
-        const hashedPassword = await bcrypt.hash(barbeiro.senha, 10);
         const newBarbeiro = await prisma.barbeiro.create({
-            data: {
-                ...barbeiro,
-                senha: hashedPassword,
-            },
+            data: barbeiro
         });
         return newBarbeiro;
     }
