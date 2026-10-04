@@ -3,6 +3,7 @@ import cors from 'cors';
 import swaggerUI from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger.js';
 import barbeiroRoutes from './modules/barbeiros/barbeiro.routes.js';
+import clienteRoutes from './modules/clientes/cliente.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,7 +15,11 @@ app.use(express.json());
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec));
 
 // Rotas da API
+
+// EndPoint Barbeiros
 app.use('/api/barbeiros', barbeiroRoutes);
+//EndPoint Clientes
+app.use('/api/clientes', clienteRoutes); 
 
 app.get('/', (req, res) => {
   res.json({ message: 'Hello, World!' });
