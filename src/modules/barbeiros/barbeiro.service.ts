@@ -1,11 +1,11 @@
 import { barbeiroRepository, BarbeiroRepository } from "./barbeiro.repository.js";
-import type { Barbeiro, CreateBarbeiro, UpdateBarbeiro, BarbeiroResponse } from "./barbeiro.types.js";
+import type { Barbeiro, CreateBarbeiroDTO, UpdateBarbeiroDTO, BarbeiroResponseDTO } from "./barbeiro.types.js";
 import bcrypt from "bcryptjs";
 
 export class BarbeiroService {
    constructor(private readonly repository: BarbeiroRepository = barbeiroRepository) {}
 
-   private sanitizeBarbeiro(barbeiro: Barbeiro): BarbeiroResponse {
+   private sanitizeBarbeiro(barbeiro: Barbeiro): BarbeiroResponseDTO {
       const { senha, ...barbeiroResponse } = barbeiro;
       return barbeiroResponse;
    }
@@ -22,7 +22,7 @@ export class BarbeiroService {
         }
    }
 
-   public async createBarbeiro(barbeiro: CreateBarbeiro): Promise<BarbeiroResponse> {
+   public async createBarbeiro(barbeiro: CreateBarbeiroDTO): Promise<BarbeiroResponseDTO> {
             const barbeiroExists = await this.repository.getByPhone(barbeiro.telefone);
 
             if (barbeiroExists) {
@@ -33,16 +33,21 @@ export class BarbeiroService {
 
             const passHash = await bcrypt.hash(barbeiro.senha, 8);
 
-            const newBarbeiro = await this.repository.create({ ...barbeiro, senha: passHash });
+            const newBarbeiro = await this.repository.create({ 
+               ...barbeiro, 
+               senha: passHash,
+               isAdmin: barbeiro.isAdmin ?? false 
+            });
+            
             return this.sanitizeBarbeiro(newBarbeiro);
    }
 
-   public async getBarbeiros(): Promise<BarbeiroResponse[]> {
+   public async getBarbeiros(): Promise<BarbeiroResponseDTO[]> {
       const barbeiros = await this.repository.getAll();
       return barbeiros.map((barbeiro) => this.sanitizeBarbeiro(barbeiro));
    }
 
-   public async getBarbeiroById(id: string): Promise<BarbeiroResponse | undefined> {
+   public async getBarbeiroById(id: string): Promise<BarbeiroResponseDTO | undefined> {
       const barbeiro = await this.repository.getByID(id);
 
       if (!barbeiro) {
@@ -52,7 +57,7 @@ export class BarbeiroService {
       return this.sanitizeBarbeiro(barbeiro);
    }
 
-   public async updateBarbeiro(id: string, barbeiro: UpdateBarbeiro): Promise<BarbeiroResponse> {
+   public async updateBarbeiro(id: string, barbeiro: UpdateBarbeiroDTO): Promise<BarbeiroResponseDTO> {
       const existingBarbeiro = await this.repository.getByID(id);
 
       if (!existingBarbeiro) {

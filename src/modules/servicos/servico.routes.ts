@@ -32,9 +32,13 @@ const controller = new ServicoController();
  *           type: integer
  *           description: Duração estimada em minutos
  *           example: 30
+ *         ativo:
+ *           type: boolean
+ *           description: Define se o serviço está ativo (padrão true)
+ *           example: true
  *         imagemUrl:
  *           type: string
- *           description: URL externa direta da imagem (opcional, pode ser enviada como ficheiro)
+ *           description: URL externa direta da imagem (opcional)
  *           example: "http://localhost:3000/files/exemplo.jpg"
  *     ServicoResponse:
  *       type: object
@@ -56,6 +60,9 @@ const controller = new ServicoController();
  *         duracao:
  *           type: integer
  *           example: 30
+ *         ativo:
+ *           type: boolean
+ *           example: true
  *         imagemUrl:
  *           type: string
  *           nullable: true
@@ -74,7 +81,7 @@ const controller = new ServicoController();
  * /api/servicos:
  *   post:
  *     summary: Cadastra um novo serviço
- *     description: Cria um serviço com campos obrigatórios e aceita imagem opcional via upload de ficheiro ou URL.
+ *     description: Cria um serviço com campos obrigatórios e aceita imagem e estado ativo opcionais.
  *     tags: [Serviços]
  *     requestBody:
  *       required: true
@@ -99,6 +106,9 @@ const controller = new ServicoController();
  *               duracao:
  *                 type: integer
  *                 example: 30
+ *               ativo:
+ *                 type: boolean
+ *                 example: true
  *               imagem:
  *                 type: string
  *                 format: binary
@@ -129,11 +139,11 @@ const controller = new ServicoController();
  *                 $ref: '#/components/schemas/ServicoResponse'
  */
 router.post(
-    "/", 
-    uploadConfig.single("imagem"),
-    handleMulterError,
-    validateRealFileType, 
-    controller.createServico
+  "/",
+  uploadConfig.single("imagem"),
+  handleMulterError,
+  validateRealFileType,
+  controller.createServico
 );
 
 router.get("/", controller.getAllServicos);
@@ -160,7 +170,7 @@ router.get("/", controller.getAllServicos);
  *       404:
  *         description: Serviço não encontrado
  *   put:
- *     summary: Atualiza os dados textuais/numéricos do serviço
+ *     summary: Atualiza os dados de um serviço
  *     tags: [Serviços]
  *     parameters:
  *       - in: path
@@ -183,6 +193,8 @@ router.get("/", controller.getAllServicos);
  *                 type: number
  *               duracao:
  *                 type: integer
+ *               ativo:
+ *                 type: boolean
  *     responses:
  *       200:
  *         description: Serviço atualizado com sucesso
@@ -246,11 +258,11 @@ router.delete("/:id", controller.deleteServico);
  *         description: Serviço não encontrado
  */
 router.patch(
-    "/:id/imagem", 
-    uploadConfig.single("imagem"), 
-    handleMulterError,
-    validateRealFileType,
-    controller.uploadImage
+  "/:id/imagem",
+  uploadConfig.single("imagem"),
+  handleMulterError,
+  validateRealFileType,
+  controller.uploadImage
 );
 
 export default router;

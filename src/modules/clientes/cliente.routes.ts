@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { ClienteController } from "./cliente.controller.js";
+import { handleMulterError, uploadConfig, validateRealFileType } from "../../config/upload.js";
 
 const router = Router();
 const controller = new ClienteController();
@@ -24,6 +25,9 @@ const controller = new ClienteController();
  *         telefone:
  *           type: string
  *           example: "923123456"
+ *         imagemUrl:
+ *           type: string
+ *           example: "http://localhost:3000/files/cliente.png"
  *     ClienteResponse:
  *       type: object
  *       properties:
@@ -36,6 +40,10 @@ const controller = new ClienteController();
  *         telefone:
  *           type: string
  *           example: "923123456"
+ *         imagemUrl:
+ *           type: string
+ *           nullable: true
+ *           example: "http://localhost:3000/files/cliente.png"
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -53,6 +61,27 @@ const controller = new ClienteController();
  *     requestBody:
  *       required: true
  *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - nome
+ *               - senha
+ *               - telefone
+ *             properties:
+ *               nome:
+ *                 type: string
+ *                 example: "João Silva"
+ *               senha:
+ *                 type: string
+ *                 example: "senha123"
+ *               telefone:
+ *                 type: string
+ *                 example: "923123456"
+ *               imagem:
+ *                 type: string
+ *                 format: binary
+ *                 description: Ficheiro de imagem opcional (JPG, PNG ou WEBP)
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/CreateClienteInput'
@@ -78,8 +107,15 @@ const controller = new ClienteController();
  *               items:
  *                 $ref: '#/components/schemas/ClienteResponse'
  */
-router.post('/', controller.createCliente);
-router.get('/', controller.getClientes);
+router.post(
+  "/",
+  uploadConfig.single("imagem"),
+  handleMulterError,
+  validateRealFileType,
+  controller.createCliente
+);
+
+router.get("/", controller.getClientes);
 
 /**
  * @swagger
@@ -145,8 +181,54 @@ router.get('/', controller.getClientes);
  *       400:
  *         description: Erro ao remover
  */
-router.get('/:id', controller.getClienteById);
-router.put('/:id', controller.updateCliente);
-router.delete('/:id', controller.deleteCliente);
+router.get("/:id", controller.getClienteById);
+router.put("/:id", controller.updateCliente);
+router.delete("/:id", controller.deleteCliente);
+
+/**
+ * @swagger
+ * /api/clientes/{id}/imagem:
+ *   patch:
+ *     summary: Atualiza apenas a imagem de perfil
+ *     description: Envia uma nova imagem para substituir ou adicionar a imagem de perfil do cliente.
+ *     tags: [Clientes]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - imagem
+ *             properties:
+ *               imagem:
+ *                 type: string
+ *                 format: binary
+ *                 description: Ficheiro de imagem (JPG, PNG ou WEBP)
+ *     responses:
+ *       200:
+ *         description: Imagem atualizada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ClienteResponse'
+ *       400:
+ *         description: Nenhuma imagem enviada ou formato inválido
+ *       404:
+ *         description: Cliente não encontrado
+ */
+router.patch(
+  "/:id/imagem",
+  uploadConfig.single("imagem"),
+  handleMulterError,
+  validateRealFileType,
+  controller.uploadImagem
+);
 
 export default router;
