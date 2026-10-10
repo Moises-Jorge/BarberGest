@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { ServicoController } from "./servico.controller.js";
-import { uploadConfig } from "../../config/upload.js";
+import { uploadConfig, handleMulterError, validateRealFileType } from "../../config/upload.js";
 
 const router = Router();
 const controller = new ServicoController();
@@ -128,7 +128,14 @@ const controller = new ServicoController();
  *               items:
  *                 $ref: '#/components/schemas/ServicoResponse'
  */
-router.post("/", uploadConfig.single("imagem"), controller.createServico);
+router.post(
+    "/", 
+    uploadConfig.single("imagem"),
+    handleMulterError,
+    validateRealFileType, 
+    controller.createServico
+);
+
 router.get("/", controller.getAllServicos);
 
 /**
@@ -238,6 +245,12 @@ router.delete("/:id", controller.deleteServico);
  *       404:
  *         description: Serviço não encontrado
  */
-router.patch("/:id/imagem", uploadConfig.single("imagem"), controller.uploadImage);
+router.patch(
+    "/:id/imagem", 
+    uploadConfig.single("imagem"), 
+    handleMulterError,
+    validateRealFileType,
+    controller.uploadImage
+);
 
 export default router;
