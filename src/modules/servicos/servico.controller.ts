@@ -10,6 +10,8 @@ export class ServicoController {
 
             if (req.file) {
                 imagemUrl =  `${req.protocol}://${req.get("host")}/files/${req.file.filename}`;
+            } else if (req.body.imagemUrl) {
+                imagemUrl = req.body.imagemUrl;
             }
 
             let ativo: boolean | undefined = undefined;

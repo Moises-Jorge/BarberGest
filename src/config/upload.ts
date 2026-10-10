@@ -39,7 +39,7 @@ export const uploadConfig = multer({
 
 
 export const handleMulterError = (
-    arr: any,
+    err: any,
     _req: Request,
     res: Response,
     next: NextFunction
@@ -57,7 +57,7 @@ export const handleMulterError = (
         return res.status(400).json({ error: err.message });
     }
     
-    next();
+    return next();
 };
 
 export const validateRealFileType = async (
