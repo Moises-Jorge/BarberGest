@@ -31,3 +31,16 @@ model Cliente {
 
   @@map("clientes")
 }
+
+model Servico {
+  id        String @id @default(uuid())
+  nome      String
+  descricao String?
+  preco     Float
+  duracao   Int
+  imagemUrl String? @map("imagem_url")
+  created_at DateTime @default(now()) @map("created_at")
+  updated_at DateTime @updatedAt @map("updated_at")
+
+  @@map("servicos")
+}
