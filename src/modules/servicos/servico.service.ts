@@ -13,7 +13,10 @@ export class ServicoService {
         if (servico.duracao <= 0) {
             throw new Error("A duração do serviço deve ser positiva.");
         }
-        return await this.repository.create(servico);
+        return await this.repository.create({
+            ...servico,
+            ativo: servico.ativo ?? true,
+        });
     }
 
     public async update(id: number, servico: UpdateServicoDTO): Promise<Servico | null> {
@@ -45,12 +48,12 @@ export class ServicoService {
         return servico;
     }
 
-    public async remove(id: number): Promise<boolean> {
+    public async remove(id: number): Promise<void> {
         const existingServico = await this.repository.getById(id);
         if (!existingServico) {
             throw new Error("Serviço não encontrado.");
         }
-        return await this.repository.remove(id);
+        await this.repository.remove(id);
     }
 }
 

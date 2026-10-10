@@ -12,11 +12,17 @@ export class ServicoController {
                 imagemUrl =  `${req.protocol}://${req.get("host")}/files/${req.file.filename}`;
             }
 
+            let ativo: boolean | undefined = undefined;
+            if (req.body.ativo !== undefined) {
+                ativo = req.body.ativo === 'true' || req.body.ativo === true;
+            }
+
             const servicoData = {
                 nome: req.body.nome,
                 descricao: req.body.descricao,
                 preco: Number(req.body.preco),
                 duracao: Number(req.body.duracao),
+                ativo,
                 imagemUrl: imagemUrl || req.body.imagemUrl,
             };
 
