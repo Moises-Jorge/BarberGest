@@ -15,7 +15,29 @@ Garante que tens as seguintes ferramentas instaladas na tua máquina:
 
 ---
 
-## Como Rodar o Projeto Localmente
+## Como Rodar o Projeto Localmente - 1
+
+### Modo Rápido (Recomendado)
+
+O projeto conta com um script de automação (`start.sh`) que verifica o estado do Docker, sobe o container do PostgreSQL em segundo plano, garante a criação da pasta de `uploads/`, aplica todas as migrações da base de dados e inicia o servidor Express num único comando.
+
+1. **Clonar e configurar o ambiente:**
+   ```bash
+   git clone <URL_DO_TEU_REPOSITORIO>
+   cd BarberGest
+   cp .env.example .env
+   npm install
+
+2. **Dar permissão ao script:**
+   ```bash
+   chmod +x start.sh
+
+3. **Colocar o servidor:**
+   ```bash
+   ./start.sh
+
+
+## Como Rodar o Projeto Localmente - 2
 
 ### 1. Clonar o Repositório
 
