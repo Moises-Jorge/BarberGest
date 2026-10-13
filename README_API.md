@@ -2,6 +2,8 @@
 
 API backend desenvolvida com **Node.js, Express, TypeScript, Prisma ORM e PostgreSQL**, utilizando **Docker** para executar a base de dados.
 
+A API conta com documentação interativa Swagger, encriptação de senhas com `bcryptjs` e upload seguro de ficheiros de mídia (imagens) com validação por Magic Bytes (`file-type`).
+
 ---
 
 ## Pré-requisitos
@@ -78,7 +80,7 @@ http://localhost:3000
 
 ## Principais Endpoints
 
-### Módulo Barbeiros
+### Módulo Clientes
 
 | Método   | Rota             | Descrição                      |
 | -------- | ---------------- | ------------------------------ |
@@ -86,6 +88,7 @@ http://localhost:3000
 | `GET`    | `/barbeiros`     | Listar todos os barbeiros      |
 | `GET`    | `/barbeiros/:id` | Buscar barbeiro por ID         |
 | `PUT`    | `/barbeiros/:id` | Atualizar dados de um barbeiro |
+| `PATCH`  | `/barbeiros/:id/imagem` | Atualizar/Upload da imagem de perfil do barbeiro |
 | `DELETE` | `/barbeiros/:id` | Remover um barbeiro            |
 
 ### Módulo Barbeiros
@@ -96,7 +99,19 @@ http://localhost:3000
 | `GET`    | `/clientes`     | Listar todos os clientes      |
 | `GET`    | `/clientes/:id` | Buscar cliente por ID         |
 | `PUT`    | `/clientes/:id` | Atualizar dados de um cliente |
+| `PATCH`  | `/clientes/:id/imagem` | Atualizar/Upload da imagem de perfil do cliente |
 | `DELETE` | `/clientes/:id` | Remover um cliente            |
+
+### Módulo Serviços
+
+| Método   | Rota             | Descrição                      |
+| -------- | ---------------- | ------------------------------ |
+| `POST`   | `/servicos`     | Registar um novo serviço      |
+| `GET`    | `/servicos`     | Listar todos os serviços      |
+| `GET`    | `/servicos/:id` | Buscar serviço por ID         |
+| `PUT`    | `/servicos/:id` | Atualizar dados de um serviço |
+| `PATCH`  | `/servicos/:id/imagem` | Atualizar/Upload da imagem de perfil do serviço |
+| `DELETE` | `/servicos/:id` | Remover um serviço            |
 
 
 > **Nota:** Podes acessar a documentação iterativa em:
@@ -104,6 +119,16 @@ http://localhost:3000
 > `http://localhost:3000/api-docs`
 
 ---
+
+## Uploads de Imagens
+
+Durante o desenvolvimento, as imagens enviadas via multipart/form-data nos endpoints de upload são salvas localmente no diretório uploads/ e validadas rigorosamente:
+
+`Limite por imagem`: 5MB.
+
+`Formatos permitidos`: JPG, PNG e WEBP.
+
+`Segurança de Mídia`: Validação do buffer real por Magic Bytes via file-type (impede renomeação maliciosa de ficheiros).
 
 ## Prisma
 

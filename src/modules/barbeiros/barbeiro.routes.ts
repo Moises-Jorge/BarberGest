@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { BarbeiroController } from "./barbeiro.controller.js";
+import { handleMulterError, uploadConfig, validateRealFileType } from "../../config/upload.js";
 
 const router = Router();
 const controller = new BarbeiroController();
@@ -32,6 +33,13 @@ const controller = new BarbeiroController();
  *         h_saida:
  *           type: string
  *           example: "18:00"
+ *         isAdmin:
+ *           type: boolean
+ *           description: Define se o barbeiro tem privilégios de administrador
+ *           example: false
+ *         imagemUrl:
+ *           type: string
+ *           example: "http://localhost:3000/files/perfil.png"
  *     BarbeiroResponse:
  *       type: object
  *       properties:
@@ -50,6 +58,19 @@ const controller = new BarbeiroController();
  *         h_saida:
  *           type: string
  *           example: "18:00"
+ *         isAdmin:
+ *           type: boolean
+ *           example: false
+ *         imagemUrl:
+ *           type: string
+ *           nullable: true
+ *           example: "http://localhost:3000/files/perfil.png"
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
  */
 
 /**
@@ -61,6 +82,38 @@ const controller = new BarbeiroController();
  *     requestBody:
  *       required: true
  *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - nome
+ *               - senha
+ *               - telefone
+ *               - h_entrada
+ *               - h_saida
+ *             properties:
+ *               nome:
+ *                 type: string
+ *                 example: "Cesenio Filipe"
+ *               senha:
+ *                 type: string
+ *                 example: "senha123"
+ *               telefone:
+ *                 type: string
+ *                 example: "923456789"
+ *               h_entrada:
+ *                 type: string
+ *                 example: "08:00"
+ *               h_saida:
+ *                 type: string
+ *                 example: "18:00"
+ *               isAdmin:
+ *                 type: boolean
+ *                 example: false
+ *               imagem:
+ *                 type: string
+ *                 format: binary
+ *                 description: Ficheiro de imagem opcional (JPG, PNG ou WEBP)
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/CreateBarbeiroInput'
@@ -86,7 +139,14 @@ const controller = new BarbeiroController();
  *               items:
  *                 $ref: '#/components/schemas/BarbeiroResponse'
  */
-router.post("/", controller.create);
+router.post(
+  "/",
+  uploadConfig.single("imagem"),
+  handleMulterError,
+  validateRealFileType,
+  controller.create
+);
+
 router.get("/", controller.getAll);
 
 /**
@@ -135,6 +195,8 @@ router.get("/", controller.getAll);
  *                 type: string
  *               h_saida:
  *                 type: string
+ *               isAdmin:
+ *                 type: boolean
  *     responses:
  *       200:
  *         description: Barbeiro atualizado com sucesso
@@ -158,5 +220,51 @@ router.get("/", controller.getAll);
 router.get("/:id", controller.getById);
 router.put("/:id", controller.update);
 router.delete("/:id", controller.delete);
+
+/**
+ * @swagger
+ * /api/barbeiros/{id}/imagem:
+ *   patch:
+ *     summary: Atualiza apenas a imagem de perfil
+ *     description: Envia uma nova imagem para substituir ou adicionar a imagem de perfil do barbeiro.
+ *     tags: [Barbeiros]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - imagem
+ *             properties:
+ *               imagem:
+ *                 type: string
+ *                 format: binary
+ *                 description: Ficheiro de imagem (JPG, PNG ou WEBP)
+ *     responses:
+ *       200:
+ *         description: Imagem atualizada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/BarbeiroResponse'
+ *       400:
+ *         description: Nenhuma imagem enviada ou formato inválido
+ *       404:
+ *         description: Barbeiro não encontrado
+ */
+router.patch(
+  "/:id/imagem",
+  uploadConfig.single("imagem"),
+  handleMulterError,
+  validateRealFileType,
+  controller.uploadImagem
+);
 
 export default router;

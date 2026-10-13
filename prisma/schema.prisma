@@ -14,6 +14,8 @@ model Barbeiro {
   telefone   String   @unique
   h_entrada  String
   h_saida    String
+  imagemUrl  String?  @map("imagem_url")
+  isAdmin    Boolean  @default(false) @map("is_admin")
   created_at DateTime @default(now()) @map("created_at")
   updated_at DateTime @updatedAt @map("updated_at")
   ativo      Boolean  @default(true)
@@ -22,12 +24,27 @@ model Barbeiro {
 }
 
 model Cliente {
-  id        String @id @default(uuid())
-  nome      String
-  senha     String
-  telefone  String @unique
+  id         String @id @default(uuid())
+  nome       String
+  senha      String
+  telefone   String @unique
+  imagemUrl  String? @map("imagem_url")
   created_at DateTime @default(now()) @map("created_at")
   updated_at DateTime @updatedAt @map("updated_at")
 
   @@map("clientes")
+}
+
+model Servico {
+  id         String @id @default(uuid())
+  nome       String
+  descricao  String?
+  preco      Float
+  duracao    Int
+  imagemUrl  String? @map("imagem_url")
+  ativo      Boolean @default(true)
+  created_at DateTime @default(now()) @map("created_at")
+  updated_at DateTime @updatedAt @map("updated_at")
+
+  @@map("servicos")
 }
