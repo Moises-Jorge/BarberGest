@@ -7,30 +7,45 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model RefreshToken {
+  id         String @id @default(uuid())
+  token      String @unique
+  expiresAt  DateTime @map("expires_at")
+  clienteId  String? @map("cliente_id")
+  barbeiroId String? @map("barbeiro_id")
+  cliente    Cliente? @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  barbeiro   Barbeiro? @relation(fields: [barbeiroId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("refresh_tokens")
+}
+
 model Barbeiro {
-  id         String   @id @default(uuid())
-  nome       String
-  senha      String
-  telefone   String   @unique
-  h_entrada  String
-  h_saida    String
-  imagemUrl  String?  @map("imagem_url")
-  isAdmin    Boolean  @default(false) @map("is_admin")
-  created_at DateTime @default(now()) @map("created_at")
-  updated_at DateTime @updatedAt @map("updated_at")
-  ativo      Boolean  @default(true)
+  id            String   @id @default(uuid())
+  nome          String
+  senha         String
+  telefone      String   @unique
+  h_entrada     String
+  h_saida       String
+  imagemUrl     String?  @map("imagem_url")
+  isAdmin       Boolean  @default(false) @map("is_admin")
+  refreshTokens RefreshToken[]
+  created_at    DateTime @default(now()) @map("created_at")
+  updated_at    DateTime @updatedAt @map("updated_at")
+  ativo         Boolean  @default(true)
 
   @@map("barbeiros")
 }
 
 model Cliente {
-  id         String @id @default(uuid())
-  nome       String
-  senha      String
-  telefone   String @unique
-  imagemUrl  String? @map("imagem_url")
-  created_at DateTime @default(now()) @map("created_at")
-  updated_at DateTime @updatedAt @map("updated_at")
+  id            String @id @default(uuid())
+  nome          String
+  senha         String
+  telefone      String @unique
+  imagemUrl     String? @map("imagem_url")
+  refreshTokens RefreshToken[]
+  created_at    DateTime @default(now()) @map("created_at")
+  updated_at    DateTime @updatedAt @map("updated_at")
 
   @@map("clientes")
 }
