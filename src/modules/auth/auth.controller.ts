@@ -22,7 +22,31 @@ export class AuthController {
         }
     };
 
-    
+    public refreshToken = async (req: Request, res: Response): Promise<Response> => {
+        try {
+            const { refreshToken } = req.body;
 
-    
+            if (!refreshToken)
+                return res.status(400).json({ error: "O refresh token é obrigatório." });
+
+            const result = await this.service.refresh(refreshToken);
+            return res.status(200).json(result);
+        } catch(error: any) {
+            return res.status(401).json({ error: "O refresh token é obrigatório." });
+        }
+    };
+
+    public logout = async (req: Request, res: Response): Promise<Response> => {
+        try {
+            const { refreshToken } = req.body;
+
+            if (refreshToken) {
+                await this.service.logout(refreshToken);
+            }
+
+            return res.status(204).send();
+        } catch(error: any) {
+            return res.status(400).json({ error: error.message });
+        }
+    };
 }
