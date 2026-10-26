@@ -48,4 +48,61 @@ export class AuthService {
             });
         }
     }
+
+    public async loginCliente(data: LoginDTO): Promise<AuthResponse> {
+        const cliente = await prisma.cliente.findUnique({
+            where: { telefone: data.telefone },
+        });
+
+        if (!cliente)
+            throw new Error("Credencias Inválidas.");
+
+        const senhaVal = await bcrypt.compare(data.senha, cliente.senha);
+        if (!senhaVal)
+            throw new Error("Credencias Inválidas");
+
+        const { accessToken, refreshToken } = this.generateTokens(cliente.id, "CLIENTE", false);
+        await this.saveRefreshToken(cliente.id, "CLIENTE", refreshToken);
+
+        return {
+            user: {
+                id: cliente.id,
+                nome: cliente.nome,
+                telefone: cliente.telefone,
+                imagemUrl: cliente.imagemUrl,
+                role: "CLIENTE",
+            },
+            accessToken,
+            refreshToken,
+        };
+    }
+
+    public async loginBarbeiro(data: LoginDTO): Promise<AuthResponse> {
+        const barbeiro = await prisma.barbeiro.findUnique({
+            where: { telefone: data.telefone },
+        });
+
+        if (!barbeiro) 
+            throw new Error("Credencias Inválidas");
+
+        const senhaVal = await bcrypt.compare(data.senha, barbeiro.senha);
+        if (!senhaVal)
+            throw new Error("Credencias Inválidas");
+
+        const { accessToken, refreshToken } = this.generateTokens(barbeiro.id, "BARBEIRO", barbeiro.isAdmin);
+        await this.saveRefreshToken(barbeiro.id, "BARBEIRO", refreshToken);
+
+        return {
+            user: {
+                id: barbeiro.id,
+                nome: barbeiro.nome,
+                telefone: barbeiro.telefone,
+                imagemUrl: barbeiro.imagemUrl,
+                role: "BARBEIRO",
+                isAdmin: barbeiro.isAdmin,
+            },
+            accessToken,
+            refreshToken,
+        };
+    }
 }
