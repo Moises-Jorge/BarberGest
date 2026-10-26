@@ -1,6 +1,9 @@
 import { Router } from "express";
 import { ClienteController } from "./cliente.controller.js";
 import { handleMulterError, uploadConfig, validateRealFileType } from "../../config/upload.js";
+import { ensureAdmin } from "../../middlewares/ensureAdmin.js";
+import { ensureAuthenticated } from "../../middlewares/ensureAuthenticated.js";
+import { ensureOwnerOrAdmin } from "../../middlewares/ensureOwnerOrAdmin.js";
 
 const router = Router();
 const controller = new ClienteController();
@@ -115,7 +118,7 @@ router.post(
   controller.createCliente
 );
 
-router.get("/", controller.getClientes);
+router.get("/", ensureAuthenticated, ensureAdmin, controller.getClientes);
 
 /**
  * @swagger
@@ -181,9 +184,9 @@ router.get("/", controller.getClientes);
  *       400:
  *         description: Erro ao remover
  */
-router.get("/:id", controller.getClienteById);
-router.put("/:id", controller.updateCliente);
-router.delete("/:id", controller.deleteCliente);
+router.get("/:id", ensureAuthenticated, controller.getClienteById);
+router.put("/:id", ensureAuthenticated, ensureOwnerOrAdmin, controller.updateCliente);
+router.delete("/:id", ensureAuthenticated, ensureOwnerOrAdmin, controller.deleteCliente);
 
 /**
  * @swagger
@@ -225,6 +228,8 @@ router.delete("/:id", controller.deleteCliente);
  */
 router.patch(
   "/:id/imagem",
+  ensureAuthenticated, 
+  ensureOwnerOrAdmin,
   uploadConfig.single("imagem"),
   handleMulterError,
   validateRealFileType,
