@@ -105,4 +105,53 @@ export class AuthService {
             refreshToken,
         };
     }
+
+    public async refresh(tokenEnviado: string): Promise<RefreshTokenResponse> {
+        const tokenHash = hashToken(tokenEnviado);
+
+        const storedToken = await prisma.refreshToken.findUnique({
+            where: { token: tokenHash },
+            include: { cliente: true, barbeiro: true },
+        });
+
+        if (!storedToken)
+            throw new Error("Refresh Token inválido ou revogado.");
+
+        if (new Date() > storedToken.expiresAt) {
+            await prisma.refreshToken.delete({ where: { id: storedToken.id } });
+            throw new Error("Sessão expirada. Faça login novamente.");
+        }
+
+        const refreshSecret = process.env.REFRESH_TOKEN_SECRET;
+        if (!refreshSecret)
+            throw new Error("REFRESH_TOKEN_SECRET não foi definido.");
+
+        try {
+            jwt.verify(tokenEnviado, refreshSecret);
+        } catch {
+            await prisma.refreshToken.delete({ where: { id: storedToken.id } });
+            throw new Error("Refresh Token inválido.");
+        }
+
+        let userId = "";
+        let role: "CLIENTE" | "BARBEIRO" = "CLIENTE";
+        let isAdmin = false;
+
+        if (storedToken.cliente) {
+            userId = storedToken.cliente.id;
+            role = "CLIENTE";
+        } else if (storedToken.barbeiro) {
+            userId = storedToken.barbeiro.id;
+            role = "BARBEIRO";
+            isAdmin = storedToken.barbeiro.isAdmin;
+        }
+
+        const { accessToken, refreshToken: newRefreshToken } = this.generateTokens(userId, role, isAdmin);
+        await this.saveRefreshToken(userId, role, newRefreshToken);
+
+        return {
+            accessToken,
+            refreshToken: newRefreshToken,
+        }
+    }
 }
