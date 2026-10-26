@@ -152,6 +152,15 @@ export class AuthService {
         return {
             accessToken,
             refreshToken: newRefreshToken,
-        }
+        };
+    }
+
+    public async logout(tokenEnviado: string): Promise<void> {
+        const tokenHash = hashToken(tokenEnviado);
+        await prisma.refreshToken.deleteMany({
+            where: { token: tokenHash },
+        });
     }
 }
+
+export const authService = new AuthService();
