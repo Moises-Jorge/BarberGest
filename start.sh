@@ -16,11 +16,16 @@ fi
 echo -e "${BLUE}[1/4] Subindo a base de dados PostgreSQL no Docker...${NC}"
 docker compose up -d
 
+sleep 2
+
 echo -e "${BLUE}[2/4] Verificando pasta de uploads...${NC}"
 mkdir -p uploads
 
 echo -e "${BLUE}[3/4] Sincronizando migrações do banco de dados...${NC}"
 npx prisma migrate dev
+
+echo "🌱 Verificando/Criando o Administrador inicial..."
+npx prisma db seed
 
 echo -e "${GREEN}[4/4] Servidor pronto! Iniciando a aplicação...${NC}"
 echo -e "${GREEN}API disponível em: http://localhost:3000${NC}"
