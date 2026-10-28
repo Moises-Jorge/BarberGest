@@ -1,17 +1,17 @@
 import { prisma } from '../../database/prisma.js';
-import type { Barbeiro, CreateBarbeiro, UpdateBarbeiro } from './barbeiro.types.js';
+import type { Barbeiro, CreateBarbeiroDTO, UpdateBarbeiroDTO } from './barbeiro.types.js';
 import bcrypt from "bcryptjs";
 
 export class BarbeiroRepository {
 
-    public async create(barbeiro: CreateBarbeiro): Promise<Barbeiro> {
+    public async create(barbeiro: CreateBarbeiroDTO): Promise<Barbeiro> {
         const newBarbeiro = await prisma.barbeiro.create({
             data: barbeiro
         });
         return newBarbeiro;
     }
 
-    public async update(id: string, barbeiro: UpdateBarbeiro): Promise<Barbeiro | undefined> {
+    public async update(id: string, barbeiro: UpdateBarbeiroDTO): Promise<Barbeiro | undefined> {
        return await prisma.barbeiro.update({
         where: { id },
         data: barbeiro,
@@ -37,7 +37,16 @@ export class BarbeiroRepository {
     }
 
     public async getAll(): Promise<Barbeiro[]> {
-        return await prisma.barbeiro.findMany();
+        return await prisma.barbeiro.findMany({
+            orderBy: [
+                {
+                    isAdmin: "desc",
+                },
+                {
+                    created_at: "desc",
+                },
+            ]
+        });
     }
 
     public async remove(id: string): Promise<boolean> {
