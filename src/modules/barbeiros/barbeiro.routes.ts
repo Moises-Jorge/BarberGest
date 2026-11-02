@@ -1,6 +1,9 @@
 import { Router } from "express";
 import { BarbeiroController } from "./barbeiro.controller.js";
 import { handleMulterError, uploadConfig, validateRealFileType } from "../../config/upload.js";
+import { ensureAuthenticated } from "../../middlewares/ensureAuthenticated.js";
+import { ensureAdmin } from "../../middlewares/ensureAdmin.js";
+import { ensureOwnerOrAdmin } from "../../middlewares/ensureOwnerOrAdmin.js";
 
 const router = Router();
 const controller = new BarbeiroController();
@@ -141,13 +144,15 @@ const controller = new BarbeiroController();
  */
 router.post(
   "/",
+  ensureAuthenticated,
+  ensureAdmin,
   uploadConfig.single("imagem"),
   handleMulterError,
   validateRealFileType,
   controller.create
 );
 
-router.get("/", controller.getAll);
+router.get("/", ensureAuthenticated, controller.getAll);
 
 /**
  * @swagger
@@ -217,9 +222,9 @@ router.get("/", controller.getAll);
  *       400:
  *         description: Erro ao remover
  */
-router.get("/:id", controller.getById);
-router.put("/:id", controller.update);
-router.delete("/:id", controller.delete);
+router.get("/:id", ensureAuthenticated, controller.getById);
+router.put("/:id", ensureAuthenticated, ensureOwnerOrAdmin, controller.update);
+router.delete("/:id", ensureAuthenticated, ensureOwnerOrAdmin, controller.delete);
 
 /**
  * @swagger
@@ -261,6 +266,8 @@ router.delete("/:id", controller.delete);
  */
 router.patch(
   "/:id/imagem",
+  ensureAuthenticated, 
+  ensureOwnerOrAdmin,
   uploadConfig.single("imagem"),
   handleMulterError,
   validateRealFileType,

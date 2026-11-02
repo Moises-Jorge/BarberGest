@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { ServicoController } from "./servico.controller.js";
 import { uploadConfig, handleMulterError, validateRealFileType } from "../../config/upload.js";
+import { ensureAuthenticated } from "../../middlewares/ensureAuthenticated.js";
+import { ensureAdmin } from "../../middlewares/ensureAdmin.js";
 
 const router = Router();
 const controller = new ServicoController();
@@ -140,13 +142,15 @@ const controller = new ServicoController();
  */
 router.post(
   "/",
+  ensureAuthenticated,
+  ensureAdmin,
   uploadConfig.single("imagem"),
   handleMulterError,
   validateRealFileType,
   controller.createServico
 );
 
-router.get("/", controller.getAllServicos);
+router.get("/", ensureAuthenticated, controller.getAllServicos);
 
 /**
  * @swagger
@@ -215,9 +219,9 @@ router.get("/", controller.getAllServicos);
  *       400:
  *         description: Erro na remoção
  */
-router.get("/:id", controller.getServicoById);
-router.put("/:id", controller.updateServico);
-router.delete("/:id", controller.deleteServico);
+router.get("/:id", ensureAuthenticated, controller.getServicoById);
+router.put("/:id", ensureAuthenticated, ensureAdmin, controller.updateServico);
+router.delete("/:id", ensureAuthenticated, ensureAdmin, controller.deleteServico);
 
 /**
  * @swagger
@@ -259,6 +263,8 @@ router.delete("/:id", controller.deleteServico);
  */
 router.patch(
   "/:id/imagem",
+  ensureAuthenticated,
+  ensureAdmin,
   uploadConfig.single("imagem"),
   handleMulterError,
   validateRealFileType,

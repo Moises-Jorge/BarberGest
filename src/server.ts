@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import swaggerUI from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger.js';
+import authRouter from './modules/auth/auth.routes.js'
 import barbeiroRoutes from './modules/barbeiros/barbeiro.routes.js';
 import clienteRoutes from './modules/clientes/cliente.routes.js';
 import servicoRoutes from './modules/servicos/servico.routes.js';
@@ -27,6 +28,9 @@ app.use("/files", express.static(UPLOADS_FOLDER));
 
 // Rotas da API
 
+
+//EndPoint Autenticação
+app.use("/api/auth", authRouter);
 // EndPoint Barbeiros
 app.use('/api/barbeiros', barbeiroRoutes);
 //EndPoint Clientes

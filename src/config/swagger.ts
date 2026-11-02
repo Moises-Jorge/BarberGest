@@ -8,6 +8,21 @@ const options: swaggerJsdoc.Options = {
       version: '1.0.0',
       description: 'API para gerenciamento de barbeiros, clientes e agendamentos.',
     },
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+          description: "Insira o Access Token JWT obtido no login no formato: Bearer <token>",
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
     servers: [
       {
         url: 'http://localhost:3000',

@@ -84,6 +84,7 @@ Aplica as migrações à base de dados PostgreSQL e gera o Prisma Client:
 
 ```bash
 npx prisma migrate dev
+npx prisma db seed
 ```
 
 ### 6. Iniciar o Servidor de Desenvolvimento
@@ -101,6 +102,15 @@ http://localhost:3000
 ---
 
 ## Principais Endpoints
+
+### Módulo Autenticação
+
+| Método    | Rota                   |  Proteção | Descrição                      |
+| --------  | ---------------------- | --------- | ------------------------------ |
+| `POST`    | `/auth/login/cliente`  |  Pública  | Login de Clientes              |
+| `POST`    | `/auth/login/barbeiro` |  Pública  | Listar de Barbeiros            |
+| `POST`    | `/auth/refresh`        |  Pública  | Renova o accessToken e roda o refreshToken         |
+| `POST`    | `/auth/logout`         |  Pública  | Invalida o refreshToken        |
 
 ### Módulo Clientes
 
