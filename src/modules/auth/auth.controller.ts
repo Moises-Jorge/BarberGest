@@ -49,4 +49,17 @@ export class AuthController {
             return res.status(400).json({ error: error.message });
         }
     };
+
+    public getMe = async (req: Request, res: Response): Promise<Response> => {
+        try {
+            if (!req.user) {
+                return res.status(401).json({ error: "Utilizador não autenticado." });
+            }
+
+            const userProfile = await this.service.getMe(req.user.id, req.user.role);
+            return res.status(200).json(userProfile);
+        } catch (error: any) {
+            return res.status(404).json({ error: error.message });
+        }
+    };
 }

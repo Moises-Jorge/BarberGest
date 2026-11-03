@@ -10,7 +10,7 @@ import fs from "fs";
 import { UPLOADS_FOLDER } from './config/upload.js';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 
 //Garantir que a pasta 'uploads' existe
 if (!fs.existsSync(UPLOADS_FOLDER)) {
