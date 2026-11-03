@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { AuthController } from "./auth.controller.js";
+import { ensureAuthenticated } from "../../middlewares/ensureAuthenticated.js";
 
 const router = Router();
 const controller = new AuthController();
@@ -139,5 +140,21 @@ router.post("/refresh", controller.refreshToken);
  *         description: Sessão encerrada com sucesso
  */
 router.post("/logout", controller.logout);
+
+/**
+ * @swagger
+ * /api/auth/me:
+ *   get:
+ *     summary: Retorna o perfil do utilizador logado
+ *     tags: [Autenticação]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Perfil do utilizador retornado com sucesso
+ *       401:
+ *         description: Não autenticado ou token inválido
+ */
+router.get("/me", ensureAuthenticated, controller.getMe);
 
 export default router;

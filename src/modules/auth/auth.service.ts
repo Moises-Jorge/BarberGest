@@ -161,6 +161,30 @@ export class AuthService {
             where: { token: tokenHash },
         });
     }
+
+    public async getMe(userId: string, role: "CLIENTE" | "BARBEIRO") {
+        if (role === "CLIENTE") {
+            const cliente = await prisma.cliente.findUnique({
+            where: { id: userId },
+            select: { id: true, nome: true, telefone: true, imagemUrl: true, created_at: true },
+            });
+
+            if (!cliente) 
+                throw new Error("Cliente não encontrado.");
+
+            return { ...cliente, role: "CLIENTE" };
+        } else {
+            const barbeiro = await prisma.barbeiro.findUnique({
+            where: { id: userId },
+            select: { id: true, nome: true, telefone: true, imagemUrl: true, isAdmin: true, h_entrada: true, h_saida: true, created_at: true },
+            });
+
+            if (!barbeiro) 
+                throw new Error("Barbeiro não encontrado.");
+
+            return { ...barbeiro, role: "BARBEIRO" };
+        }
+    }
 }
 
 export const authService = new AuthService();
