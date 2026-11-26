@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { AuthController } from "./auth.controller.js";
 import { ensureAuthenticated } from "../../middlewares/ensureAuthenticated.js";
+import { tloginSchema, refreshTokenSchema } from "./auth.schemas.js";
+import { validateRequest } from "../../middlewares/validateRequest.js";
 
 const router = Router();
 const controller = new AuthController();
@@ -78,7 +80,7 @@ const controller = new AuthController();
  *       401:
  *         description: Credenciais inválidas
  */
-router.post("/login/cliente", controller.loginCliente);
+router.post("/login/cliente", validateRequest(loginSchema),  controller.loginCliente);
 
 /**
  * @swagger
@@ -101,7 +103,7 @@ router.post("/login/cliente", controller.loginCliente);
  *       401:
  *         description: Credenciais inválidas
  */
-router.post("/login/barbeiro", controller.loginBarbeiro);
+router.post("/login/barbeiro", validateRequest(loginSchema), controller.loginBarbeiro);
 
 /**
  * @swagger
@@ -121,7 +123,7 @@ router.post("/login/barbeiro", controller.loginBarbeiro);
  *       401:
  *         description: Refresh token inválido ou expirado
  */
-router.post("/refresh", controller.refreshToken);
+router.post("/refresh", validateRequest(refreshTokenSchema), controller.refreshToken);
 
 /**
  * @swagger
