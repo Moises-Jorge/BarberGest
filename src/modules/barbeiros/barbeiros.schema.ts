@@ -25,3 +25,16 @@ export const createBarbeiroSchema = z.object({
         }),
 });
 
+export const updateBarbeiroSchema = z.object({
+    params: uuidParamSchema,
+    body: z
+        .object({
+            nome: nomeSchema.optional(),
+            telefone: telefoneSchema.optional(),
+            senha: senhaSchema.optional(),
+            h_entrada: z.string().regex(timeRegex, "Formato HH:mm inválido").optional(),
+            h_saida: z.string().regex(timeRegex, "Formato HH:mm inválido").optional(),
+            isAdmin: z.boolean().optional(),
+        })
+        .strict(),
+});
