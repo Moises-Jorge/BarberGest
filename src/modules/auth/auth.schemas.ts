@@ -12,4 +12,12 @@ export const loginSchema = z.object({
         .strict(), 
 });
 
-export const refreshToken
+export const refreshTokenSchema = z.object({
+    body: z
+        .object({
+            refreshToken: z
+                .string({ required_error: "O refresh token é obrigatório."})
+                .min(1, "O refresh token não pode ser vazio."),
+        })
+        .strict(),
+})
