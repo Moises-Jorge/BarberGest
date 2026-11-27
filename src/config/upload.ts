@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 import type { Request, Response, NextFunction } from "express";
 import { fileTypeFromFile } from "file-type";
 import fs from "fs";
+import { AppError } from "../shared/errors/AppError.js";
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -32,7 +33,7 @@ export const uploadConfig = multer({
         if (allowedMimes.includes(file.mimetype)) {
             callback(null, true);
         } else {
-            callback(new Error("Formato de ficheiro inválido. Envie apenas JPG, PNG ou WEBP."));
+            callback(new AppError("Formato de ficheiro inválido. Envie apenas JPG, PNG ou WEBP."));
         }
     },
 });
@@ -54,9 +55,13 @@ export const handleMulterError = (
     }
 
     if (err) {
-        return res.status(400).json({ error: err.message });
+        // erros do parser multipart; os restantes seguem para o errorHandler
+        if (/multipart|boundary|end of form|part header/i.test(err.message)) {
+            return res.status(400).json({ error: "O pedido multipart é inválido." });
+        }
+        return next(err);
     }
-    
+
     return next();
 };
 

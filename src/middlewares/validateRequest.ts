@@ -29,7 +29,7 @@ export const validateRequest = (schema: RequestSchema) => {
                 });
             }
 
-            return res.status(500).json({ error: "Erro na validação." });
+            return next(error);
         }
     };
 };

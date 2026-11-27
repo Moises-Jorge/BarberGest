@@ -8,6 +8,7 @@ import clienteRoutes from './modules/clientes/cliente.routes.js';
 import servicoRoutes from './modules/servicos/servico.routes.js';
 import fs from "fs";
 import { UPLOADS_FOLDER } from './config/upload.js';
+import { errorHandler } from './middlewares/errorHandler.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -44,6 +45,9 @@ app.use('/api/servicos', servicoRoutes);
 app.get('/', (req, res) => {
   res.json({ message: 'Hello, World!' });
 });
+
+// Tem de ser o último middleware
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`Servidor a rodar em http://localhost:${PORT}`);
