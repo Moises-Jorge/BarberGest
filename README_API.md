@@ -2,300 +2,354 @@
 
 API backend desenvolvida com **Node.js, Express, TypeScript, Prisma ORM e PostgreSQL**, utilizando **Docker** para executar a base de dados.
 
-A API conta com documentação interativa Swagger, encriptação de senhas com `bcryptjs` e upload seguro de ficheiros de mídia (imagens) com validação por Magic Bytes (`file-type`).
+A API conta com documentação interativa Swagger, autenticação com JWT, encriptação de senhas com `bcryptjs`, validação de dados com Zod e upload de imagens com validação por *magic bytes* (`file-type`).
+
+Este documento orienta a equipa de front-end no uso da API durante o desenvolvimento do sistema **BarberGest**.
 
 ---
 
 ## Pré-requisitos
-
-Garante que tens as seguintes ferramentas instaladas na tua máquina:
 
 * [Node.js](https://nodejs.org/) (v20 ou superior)
 * [Docker](https://www.docker.com/) com Docker Compose ativo
 
 ---
 
-## Como Rodar o Projeto Localmente - 1
+## Como rodar o projeto localmente
 
-### Modo Rápido (Recomendado)
-
-O projeto conta com um script de automação (`start.sh`) que verifica o estado do Docker, sobe o container do PostgreSQL em segundo plano, garante a criação da pasta de `uploads/`, aplica todas as migrações da base de dados e inicia o servidor Express num único comando.
-
-1. **Clonar e configurar o ambiente:**
-   ```bash
-   git clone <URL_DO_TEU_REPOSITORIO>
-   cd BarberGest
-   cp .env.example .env
-   npm install
-
-2. **Dar permissão ao script:**
-   ```bash
-   chmod +x start.sh
-
-3. **Colocar o servidor:**
-   ```bash
-   ./start.sh
-
-
-## Como Rodar o Projeto Localmente - 2
-
-### 1. Clonar o Repositório
+Primeiro, clona o repositório, instala as dependências e cria o `.env`:
 
 ```bash
 git clone <URL_DO_TEU_REPOSITORIO>
 cd BarberGest
-```
-
-### 2. Configurar Variáveis de Ambiente
-
-Cria o ficheiro `.env` com base no `.env.example`:
-
-```bash
+npm install
 cp .env.example .env
 ```
 
-Depois, verifica se as variáveis de ambiente estão corretamente configuradas.
+Preenche o `.env` (ver [Variáveis de ambiente](#variáveis-de-ambiente)) e escolhe um dos modos.
 
-### 3. Subir a Base de Dados no Docker
+### Modo rápido (recomendado)
 
-Inicia o container do PostgreSQL em segundo plano:
-
-```bash
-docker compose up -d
-```
-
-Para verificar se o container está em execução:
+O script `start.sh` verifica o Docker, sobe o PostgreSQL, cria a pasta `uploads/`, aplica as migrações, cria o administrador inicial e inicia o servidor.
 
 ```bash
-docker compose ps
+chmod +x start.sh
+./start.sh
 ```
 
-### 4. Instalar as Dependências
-
-Instala as dependências do projeto:
+### Modo manual
 
 ```bash
-npm install
+docker compose up -d      # base de dados
+npx prisma migrate dev    # migrações e Prisma Client
+npx prisma db seed        # administrador inicial (só se ainda não existir nenhum)
+npm run dev               # servidor de desenvolvimento
 ```
 
-### 5. Sincronizar as Migrações da Base de Dados
-
-Aplica as migrações à base de dados PostgreSQL e gera o Prisma Client:
+### Produção
 
 ```bash
-npx prisma migrate dev
-npx prisma db seed
+npm run build
+npm start
 ```
 
-### 6. Iniciar o Servidor de Desenvolvimento
+| Recurso      | URL                              |
+| ------------ | -------------------------------- |
+| API          | `http://localhost:4000/api`      |
+| Swagger UI   | `http://localhost:4000/api-docs` |
+| Imagens      | `http://localhost:4000/files/`   |
 
-```bash
-npm run dev
-```
+A porta é `4000` por omissão e pode ser alterada com a variável `PORT`.
 
-A API estará disponível em:
+---
+
+## Autenticação
+
+As rotas protegidas exigem o cabeçalho:
 
 ```text
-http://localhost:3000
+Authorization: Bearer <accessToken>
 ```
 
----
+* O **access token** é de curta duração (`JWT_EXPIRES_IN`).
+* O **refresh token** serve para obter um novo par de tokens e é válido por 7 dias.
+* Cada utilizador tem **uma sessão**: um novo login ou refresh invalida o refresh token anterior. Guarda sempre o mais recente.
+* O logout revoga o refresh token. O access token já emitido continua válido até expirar.
+* Contas apagadas deixam de ter acesso de imediato.
+* Barbeiros **inativos** não conseguem fazer login, renovar a sessão nem usar um token já emitido (`403`).
+* Após **10 logins falhados em 15 minutos** (mesmo IP e telefone), a API responde `429`.
 
-## Principais Endpoints
+### Resposta do login
 
-### Módulo Autenticação
+```json
+{
+  "user": {
+    "id": "uuid",
+    "nome": "Administrador Geral",
+    "telefone": "900000000",
+    "imagemUrl": null,
+    "role": "BARBEIRO",
+    "isAdmin": true
+  },
+  "accessToken": "eyJ...",
+  "refreshToken": "eyJ..."
+}
+```
 
-| Método    | Rota                   |  Proteção | Descrição                      |
-| --------  | ---------------------- | --------- | ------------------------------ |
-| `POST`    | `/auth/login/cliente`  |  Pública  | Login de Clientes              |
-| `POST`    | `/auth/login/barbeiro` |  Pública  | Listar de Barbeiros            |
-| `POST`    | `/auth/refresh`        |  Pública  | Renova o accessToken e roda o refreshToken         |
-| `POST`    | `/auth/logout`         |  Pública  | Invalida o refreshToken        |
+No login de cliente, `role` é `CLIENTE` e não existe `isAdmin`.
 
-### Módulo Clientes
+### Resposta do registo de cliente
 
-| Método   | Rota             | Descrição                      |
-| -------- | ---------------- | ------------------------------ |
-| `POST`   | `/barbeiros`     | Registar um novo barbeiro      |
-| `GET`    | `/barbeiros`     | Listar todos os barbeiros      |
-| `GET`    | `/barbeiros/:id` | Buscar barbeiro por ID         |
-| `PUT`    | `/barbeiros/:id` | Atualizar dados de um barbeiro |
-| `PATCH`  | `/barbeiros/:id/imagem` | Atualizar/Upload da imagem de perfil do barbeiro |
-| `DELETE` | `/barbeiros/:id` | Remover um barbeiro            |
+O registo já inicia a sessão. Os tokens vêm **junto** dos dados do cliente, num formato diferente do login:
 
-### Módulo Barbeiros
+```json
+{
+  "id": "uuid",
+  "nome": "João Silva",
+  "telefone": "923123456",
+  "imagemUrl": null,
+  "created_at": "2026-01-01T10:00:00.000Z",
+  "updated_at": "2026-01-01T10:00:00.000Z",
+  "accessToken": "eyJ...",
+  "refreshToken": "eyJ..."
+}
+```
 
-| Método   | Rota             | Descrição                      |
-| -------- | ---------------- | ------------------------------ |
-| `POST`   | `/clientes`     | Registar um novo cliente      |
-| `GET`    | `/clientes`     | Listar todos os clientes      |
-| `GET`    | `/clientes/:id` | Buscar cliente por ID         |
-| `PUT`    | `/clientes/:id` | Atualizar dados de um cliente |
-| `PATCH`  | `/clientes/:id/imagem` | Atualizar/Upload da imagem de perfil do cliente |
-| `DELETE` | `/clientes/:id` | Remover um cliente            |
-
-### Módulo Serviços
-
-| Método   | Rota             | Descrição                      |
-| -------- | ---------------- | ------------------------------ |
-| `POST`   | `/servicos`     | Registar um novo serviço      |
-| `GET`    | `/servicos`     | Listar todos os serviços      |
-| `GET`    | `/servicos/:id` | Buscar serviço por ID         |
-| `PUT`    | `/servicos/:id` | Atualizar dados de um serviço |
-| `PATCH`  | `/servicos/:id/imagem` | Atualizar/Upload da imagem de perfil do serviço |
-| `DELETE` | `/servicos/:id` | Remover um serviço            |
-
-
-> **Nota:** Podes acessar a documentação iterativa em:
->
-> `http://localhost:3000/api-docs`
+Se a conta for criada mas a sessão falhar, a resposta é `201` sem os tokens. Nesse caso, encaminha o utilizador para o login.
 
 ---
 
-## Uploads de Imagens
+## Endpoints
 
-Durante o desenvolvimento, as imagens enviadas via multipart/form-data nos endpoints de upload são salvas localmente no diretório uploads/ e validadas rigorosamente:
+### Autenticação
 
-`Limite por imagem`: 5MB.
+| Método | Rota                       | Acesso      | Descrição                                       | Sucesso |
+| ------ | -------------------------- | ----------- | ----------------------------------------------- | ------- |
+| `POST` | `/api/auth/login/cliente`  | Público     | Login de clientes (`telefone`, `senha`)         | 200     |
+| `POST` | `/api/auth/login/barbeiro` | Público     | Login de barbeiros e admins (`telefone`, `senha`) | 200   |
+| `POST` | `/api/auth/refresh`        | Público     | Novo par de tokens (`refreshToken`)             | 200     |
+| `POST` | `/api/auth/logout`         | Público     | Revoga o refresh token (`refreshToken`)         | 204     |
+| `GET`  | `/api/auth/me`             | Autenticado | Perfil do utilizador com sessão iniciada        | 200     |
 
-`Formatos permitidos`: JPG, PNG e WEBP.
+### Clientes
 
-`Segurança de Mídia`: Validação do buffer real por Magic Bytes via file-type (impede renomeação maliciosa de ficheiros).
+| Método   | Rota                       | Acesso               | Descrição                  | Sucesso |
+| -------- | -------------------------- | -------------------- | -------------------------- | ------- |
+| `POST`   | `/api/clientes`            | Público              | Registar cliente           | 201     |
+| `GET`    | `/api/clientes`            | Admin                | Listar clientes            | 200     |
+| `GET`    | `/api/clientes/:id`        | O próprio ou admin   | Buscar cliente por ID      | 200     |
+| `PUT`    | `/api/clientes/:id`        | O próprio ou admin   | Atualizar dados            | 200     |
+| `PATCH`  | `/api/clientes/:id/imagem` | O próprio ou admin   | Atualizar a imagem         | 200     |
+| `DELETE` | `/api/clientes/:id`        | O próprio ou admin   | Remover cliente            | 204     |
 
-## Prisma
+### Barbeiros
 
-### Prisma Studio
+| Método   | Rota                        | Acesso             | Descrição                | Sucesso |
+| -------- | --------------------------- | ------------------ | ------------------------ | ------- |
+| `POST`   | `/api/barbeiros`            | Admin              | Registar barbeiro        | 201     |
+| `GET`    | `/api/barbeiros`            | Autenticado        | Listar barbeiros         | 200     |
+| `GET`    | `/api/barbeiros/:id`        | Autenticado        | Buscar barbeiro por ID   | 200     |
+| `PUT`    | `/api/barbeiros/:id`        | O próprio ou admin | Atualizar dados          | 200     |
+| `PATCH`  | `/api/barbeiros/:id/imagem` | O próprio ou admin | Atualizar a imagem       | 200     |
+| `DELETE` | `/api/barbeiros/:id`        | O próprio ou admin | Remover barbeiro         | 204     |
 
-Para abrir a interface gráfica da base de dados:
+* Só um administrador pode enviar o campo `isAdmin` na atualização.
+* O **último administrador ativo** não pode ser removido nem despromovido (`409`).
+* A API não tem, por agora, forma de ativar ou desativar contas.
+
+### Serviços
+
+| Método   | Rota                       | Acesso      | Descrição              | Sucesso |
+| -------- | -------------------------- | ----------- | ---------------------- | ------- |
+| `POST`   | `/api/servicos`            | Admin       | Registar serviço       | 201     |
+| `GET`    | `/api/servicos`            | Autenticado | Listar serviços        | 200     |
+| `GET`    | `/api/servicos/:id`        | Autenticado | Buscar serviço por ID  | 200     |
+| `PUT`    | `/api/servicos/:id`        | Admin       | Atualizar dados        | 200     |
+| `PATCH`  | `/api/servicos/:id/imagem` | Admin       | Atualizar a imagem     | 200     |
+| `DELETE` | `/api/servicos/:id`        | Admin       | Remover serviço        | 204     |
+
+A listagem inclui os serviços ativos e inativos.
+
+---
+
+## Campos e validações
+
+Os campos desconhecidos são **rejeitados**. Todos os `:id` têm de ser UUID.
+
+### Clientes e barbeiros
+
+| Campo       | Regra | Criação | Atualização |
+| ----------- | ----- | ------- | ----------- |
+| `nome`      | 2 a 40 caracteres: letras separadas por um espaço, hífen ou apóstrofo | Obrigatório | Opcional |
+| `telefone`  | 9 dígitos, começa por `9` (os espaços são removidos); único em cada tipo de conta | Obrigatório | Opcional |
+| `senha`     | 8 a 64 caracteres, sem espaços, com maiúscula, minúscula e número | Obrigatório | Opcional |
+| `imagemUrl` | URL `http` ou `https` | Opcional | Não aceite |
+
+No **login**, a `senha` só não pode estar vazia.
+
+Apenas para barbeiros:
+
+| Campo       | Regra | Criação | Atualização |
+| ----------- | ----- | ------- | ----------- |
+| `h_entrada` | Formato `HH:mm` | Obrigatório | Opcional |
+| `h_saida`   | Formato `HH:mm`, posterior à entrada | Obrigatório | Opcional |
+| `isAdmin`   | `true` ou `false` | Opcional | Opcional (só admin) |
+
+### Serviços
+
+| Campo       | Regra | Criação | Atualização |
+| ----------- | ----- | ------- | ----------- |
+| `nome`      | 2 a 60 caracteres | Obrigatório | Opcional |
+| `descricao` | Até 255 caracteres | Opcional | Opcional |
+| `preco`     | Maior que 0, até 10 000 000 | Obrigatório | Opcional |
+| `duracao`   | Minutos, inteiro de 1 a 1440 | Obrigatório | Opcional |
+| `ativo`     | `true` ou `false` (`true` por omissão) | Opcional | Opcional |
+| `imagemUrl` | URL `http` ou `https` | Opcional | Não aceite |
+
+---
+
+## Erros
+
+Os erros são devolvidos em JSON:
+
+```json
+{ "error": "Já existe um cliente com este telefone." }
+```
+
+Os erros de validação indicam os campos:
+
+```json
+{
+  "error": "Dados de entrada inválidos.",
+  "detalhes": [
+    { "campo": "telefone", "mensagem": "O número de telefone é obrigatório" }
+  ]
+}
+```
+
+| Código | Significado |
+| ------ | ----------- |
+| 400    | Dados, JSON ou ficheiro inválidos |
+| 401    | Sem token, token inválido ou credenciais erradas |
+| 403    | Sem permissão ou conta inativa |
+| 404    | Registo não encontrado |
+| 409    | Telefone já registado ou último administrador |
+| 413    | Corpo do pedido demasiado grande |
+| 429    | Demasiadas tentativas de login |
+| 500    | Erro interno do servidor |
+
+---
+
+## Upload de imagens
+
+* Envia o pedido como `multipart/form-data`, com o ficheiro no campo `imagem`.
+* O ficheiro pode ser enviado na **criação** (`POST`) ou pela rota `PATCH .../imagem`. O `PUT` não recebe ficheiros.
+* Um ficheiro por pedido, até **5 MB**, em **JPG, PNG ou WEBP**.
+* O conteúdo real é verificado, e o nome e a extensão são gerados pelo servidor.
+* Quando uma imagem é substituída, ou o registo é removido, o ficheiro antigo é apagado se mais nenhum registo o usar.
 
 ```bash
-npx prisma studio
+curl http://localhost:4000/api/clientes \
+  -F "nome=João Silva" \
+  -F "telefone=923123456" \
+  -F "senha=Senha1234" \
+  -F "imagem=@/caminho/para/foto.jpg"
 ```
+
+As imagens ficam na pasta `uploads/` e são públicas. O `imagemUrl` devolvido começa pelo valor de `PUBLIC_URL`. Para abrir imagens noutro dispositivo (por exemplo, um telemóvel), usa o IP da máquina em vez de `localhost`.
+
+---
+
+## Variáveis de ambiente
+
+| Variável                   | Descrição |
+| -------------------------- | --------- |
+| `PORT`                     | Porta da API (opcional, `4000` por omissão) |
+| `PUBLIC_URL`               | URL público da API, usado nos links das imagens |
+| `DATABASE_URL`             | Ligação ao PostgreSQL (porta `5430` com o Docker do projeto) |
+| `POSTGRES_USER`            | Utilizador da base de dados |
+| `POSTGRES_PASSWORD`        | Senha da base de dados |
+| `POSTGRES_DB`              | Nome da base de dados |
+| `JWT_SECRET`               | Segredo do access token |
+| `JWT_EXPIRES_IN`           | Validade do access token (`12m` por omissão) |
+| `REFRESH_TOKEN_SECRET`     | Segredo do refresh token |
+| `REFRESH_TOKEN_EXPIRES_IN` | Validade do refresh token (`7d` por omissão; a sessão guardada expira sempre aos 7 dias) |
+| `ADMIN_NAME`               | Nome do administrador inicial |
+| `ADMIN_PHONE`              | Telefone do administrador inicial |
+| `ADMIN_PASSWORD`           | Senha do administrador inicial |
+
+```env
+DATABASE_URL="postgresql://USER:PASSWORD@localhost:5430/DATABASE"
+```
+
+> **Importante:** nunca coloques credenciais reais no `.env.example` nem faças commit do `.env`.
 
 ---
 
 ## Docker
 
-### Iniciar os containers
-
 ```bash
-docker compose up -d
-```
-
-### Verificar os containers
-
-```bash
-docker compose ps
-```
-
-### Ver os logs
-
-```bash
-docker compose logs
-```
-
-### Parar os containers
-
-```bash
-docker compose down
+docker compose up -d     # iniciar
+docker compose ps        # verificar
+docker compose logs      # ver os logs
+docker compose down      # parar
 ```
 
 ---
 
-## Comandos Úteis
-
-### Instalar dependências
+## Comandos úteis
 
 ```bash
-npm install
-```
-
-### Executar o servidor em desenvolvimento
-
-```bash
-npm run dev
-```
-
-### Criar uma nova migration
-
-```bash
-npx prisma migrate dev --name nome_da_migration
-```
-
-### Gerar o Prisma Client
-
-```bash
-npx prisma generate
-```
-
-### Abrir o Prisma Studio
-
-```bash
-npx prisma studio
+npm install                                          # instalar dependências
+npm run dev                                          # servidor de desenvolvimento
+npm run build                                        # compilar
+npm start                                            # servidor compilado
+npx prisma migrate dev --name nome_da_migration      # criar uma migração
+npx prisma generate                                  # gerar o Prisma Client
+npx prisma studio                                    # interface gráfica da base de dados
 ```
 
 ---
 
-## Estrutura do Projeto
+## Estrutura do projeto
 
 ```text
 BarberGest/
 ├── prisma/
-│   └── schema.prisma
-│
+│   ├── migrations/
+│   ├── schema.prisma
+│   └── seed.ts
 ├── src/
-│   ├── database/
-│   │   └── prisma.ts
-│   │
+│   ├── @types/             # extensões de tipos do Express
+│   ├── config/             # Swagger, uploads e URL das imagens
+│   ├── database/           # Prisma Client
+│   ├── middlewares/        # autenticação, permissões, validação e erros
 │   ├── modules/
-│   │   └── barbeiros/
-│   │       ├── controllers/
-│   │       ├── repositories/
-│   │       ├── services/
-│   │       ├── models/
-│   │       ├── routes/
-│   │       └── types/
-│   │
-│   └── generated/
-│       └── prisma/
-│
-├── .env
+│   │   ├── auth/
+│   │   ├── barbeiros/      # routes, controller, service, repository, schema e types
+│   │   ├── clientes/
+│   │   └── servicos/
+│   ├── shared/             # erros e validadores comuns
+│   ├── utils/
+│   └── server.ts
 ├── .env.example
-├── .gitignore
 ├── docker-compose.yml
 ├── package.json
-├── tsconfig.json
-└── README.md
+├── start.sh
+└── tsconfig.json
 ```
-
----
-
-## Variáveis de Ambiente
-
-O projeto utiliza variáveis de ambiente para configurar a ligação à base de dados.
-
-Exemplo:
-
-```env
-DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/DATABASE?schema=public"
-```
-
-> **Importante:** nunca coloques credenciais reais no `.env.example` nem faças commit do `.env` para o repositório.
 
 ---
 
 ## Tecnologias
 
-* **Node.js** — Runtime JavaScript
-* **Express** — Framework HTTP
-* **TypeScript** — Tipagem estática
-* **Prisma ORM** — ORM para acesso à base de dados
-* **PostgreSQL** — Sistema de gestão de base de dados
-* **Docker** — Containerização da base de dados
-* **Swagger** — Documentação da API
-
----
-
-## Licença
-
-Este documento foi feito para o time do front-end ter uma orientação no uso da API durante o desenvolvimento do sistema **BarberGest**.
+* **Node.js**: runtime JavaScript
+* **Express**: framework HTTP
+* **TypeScript**: tipagem estática
+* **Prisma ORM**: acesso à base de dados
+* **PostgreSQL**: base de dados
+* **Zod**: validação de dados
+* **JWT**: autenticação
+* **Multer**: upload de ficheiros
+* **Docker**: base de dados em container
+* **Swagger**: documentação da API
