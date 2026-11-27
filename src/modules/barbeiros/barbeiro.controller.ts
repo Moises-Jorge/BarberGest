@@ -1,3 +1,4 @@
+import { buildImageUrl } from "../../config/imageUrl.js";
 import type { Request, Response, NextFunction } from "express";
 import { barbeiroService, BarbeiroService } from "./barbeiro.service.js";
 
@@ -9,7 +10,7 @@ export class BarbeiroController {
             let imagemUrl: string | undefined = undefined;
 
             if (req.file) {
-                imagemUrl = `${req.protocol}://${req.get("host")}/files/${req.file.filename}`;
+                imagemUrl = buildImageUrl(req.file.filename);
             } else if (req.body.imagemUrl) {
                 imagemUrl = req.body.imagemUrl;
             }
@@ -88,7 +89,7 @@ export class BarbeiroController {
             return res.status(400).json({ error: "Nenhum ficheiro de imagem foi enviado." });
         }
 
-        const imagemUrl = `${req.protocol}://${req.get("host")}/files/${req.file.filename}`;
+        const imagemUrl = buildImageUrl(req.file.filename);
         const barbeiro = await this.service.updateBarbeiro(id, { imagemUrl });
 
         return res.status(200).json(barbeiro);

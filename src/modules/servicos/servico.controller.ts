@@ -1,3 +1,4 @@
+import { buildImageUrl } from "../../config/imageUrl.js";
 import type { Request, Response } from "express";
 import { servicoService, ServicoService } from "./servico.service.js";
 
@@ -9,7 +10,7 @@ export class ServicoController {
             let imagemUrl: string | undefined = undefined;
 
             if (req.file) {
-                imagemUrl =  `${req.protocol}://${req.get("host")}/files/${req.file.filename}`;
+                imagemUrl =  buildImageUrl(req.file.filename);
             } else if (req.body.imagemUrl) {
                 imagemUrl = req.body.imagemUrl;
             }
@@ -63,7 +64,7 @@ export class ServicoController {
                 return res.status(400).json({ error: "Nenhum arquivo enviado." });
             }
 
-            const imagemUrl = `${req.protocol}://${req.get("host")}/files/${req.file.filename}`;
+            const imagemUrl = buildImageUrl(req.file.filename);
 
             const updatedServico = await this.service.update(id, { imagemUrl });
 
