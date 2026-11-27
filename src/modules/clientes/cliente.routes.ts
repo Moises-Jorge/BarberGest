@@ -190,7 +190,7 @@ router.get("/", ensureAuthenticated, ensureAdmin, controller.getClientes);
  *       400:
  *         description: Erro ao remover
  */
-router.get("/:id", ensureAuthenticated, validateRequest(idParamSchema), controller.getClienteById);
+router.get("/:id", ensureAuthenticated, ensureOwnerOrAdmin, validateRequest(idParamSchema), controller.getClienteById);
 router.put("/:id", ensureAuthenticated, ensureOwnerOrAdmin, validateRequest(updateClienteSchema), controller.updateCliente);
 router.delete("/:id", ensureAuthenticated, ensureOwnerOrAdmin, validateRequest(idParamSchema), controller.deleteCliente);
 
