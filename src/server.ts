@@ -24,7 +24,9 @@ app.use(express.json());
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec));
 
 //Rota para aceder as imagens salvas
-app.use("/files", express.static(UPLOADS_FOLDER));
+app.use("/files", express.static(UPLOADS_FOLDER, {
+  setHeaders: (res) => res.setHeader("X-Content-Type-Options", "nosniff"),
+}));
 
 // Rotas da API
 

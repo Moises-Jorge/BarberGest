@@ -14,10 +14,10 @@ export const UPLOADS_FOLDER = path.resolve(__dirname, "..", "..", "uploads");
 
 export const storage = multer.diskStorage({
     destination: UPLOADS_FOLDER,
-    filename(_req, file, callback) {
+    filename(_req, _file, callback) {
         const fileHash = crypto.randomBytes(10).toString("hex");
-        const fileName = `${fileHash}-${file.originalname.replace(/\s+/g, "_")}`;
-        return callback(null, fileName);
+        // o nome original é ignorado; a extensão definitiva vem do conteúdo (validateRealFileType)
+        return callback(null, `${fileHash}.tmp`);
     },
 });
 
@@ -84,6 +84,12 @@ export const validateRealFileType = async (
         error: "O conteúdo real do ficheiro não corresponde a uma imagem válida (JPG, PNG ou WEBP).",
       });
     }
+
+    const finalName = `${path.parse(filePath).name}.${type.ext}`;
+    const finalPath = path.join(path.dirname(filePath), finalName);
+    fs.renameSync(filePath, finalPath);
+    req.file.filename = finalName;
+    req.file.path = finalPath;
 
     next();
   } catch (error) {
