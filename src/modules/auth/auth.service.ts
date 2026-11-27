@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import bcrypt from "bcryptjs";
 import jwt  from "jsonwebtoken";
 import { prisma } from "../../database/prisma.js"
@@ -18,13 +19,13 @@ export class AuthService {
         const accessToken = jwt.sign(
             { id: userId, role, isAdmin },
             accessSecret,
-            { expiresIn: accessExpires as NonNullable<jwt.SignOptions["expiresIn"]> }
+            { expiresIn: accessExpires as NonNullable<jwt.SignOptions["expiresIn"]>, jwtid: randomUUID() }
         );
 
         const refreshToken = jwt.sign(
             { id: userId, role },
             refreshSecret,
-            { expiresIn: refreshExpires as NonNullable<jwt.SignOptions["expiresIn"]> }
+            { expiresIn: refreshExpires as NonNullable<jwt.SignOptions["expiresIn"]>, jwtid: randomUUID() }
         );
 
         return { accessToken, refreshToken }
@@ -36,17 +37,21 @@ export class AuthService {
 
         const tokenHash = hashToken(token);
 
-        if (role === "CLIENTE") {
-            await prisma.refreshToken.deleteMany({ where: { clienteId: userId } });
-            await prisma.refreshToken.create({
-                data: { token: tokenHash, clienteId: userId, expiresAt },
+        const owner = role === "CLIENTE" ? { clienteId: userId } : { barbeiroId: userId };
+
+        await prisma.$transaction(async (tx) => {
+            // bloqueia o utilizador: logins simultâneos são tratados um de cada vez
+            if (role === "CLIENTE") {
+                await tx.$queryRaw`SELECT id FROM clientes WHERE id = ${userId} FOR UPDATE`;
+            } else {
+                await tx.$queryRaw`SELECT id FROM barbeiros WHERE id = ${userId} FOR UPDATE`;
+            }
+
+            await tx.refreshToken.deleteMany({ where: owner });
+            await tx.refreshToken.create({
+                data: { token: tokenHash, expiresAt, ...owner },
             });
-        } else {
-            await prisma.refreshToken.deleteMany({ where: { barbeiroId: userId } });
-            await prisma.refreshToken.create({
-                data: { token: tokenHash, barbeiroId: userId, expiresAt },
-            });
-        }
+        });
     }
 
     public async loginCliente(data: LoginDTO): Promise<AuthResponse> {
