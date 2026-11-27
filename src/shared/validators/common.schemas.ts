@@ -41,9 +41,9 @@ export const nomeSchema = z
         message:
             "O nome não pode ter mais de 40 caracteres.",
     })
-    .refine((val) => /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?:\s[A-Za-zÀ-ÖØ-öø-ÿ]+)*$/.test(val), {
+    .refine((val) => /^\p{L}+(?:[ '’-]\p{L}+)*$/u.test(val), {
         message:
-            "O nome deve conter apenas letras e espaços simples entre palavras.",
+            "O nome deve conter apenas letras, separadas por um espaço, hífen ou apóstrofo.",
     });
 
     export const uuidParamSchema = z.object({
