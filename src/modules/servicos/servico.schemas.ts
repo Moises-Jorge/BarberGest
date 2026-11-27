@@ -20,7 +20,8 @@ const precoSchema = z.preprocess(
     textoParaNumero,
     z
         .number({ error: "O preço é obrigatório e deve ser um número." })
-        .positive("O preço do serviço deve ser positivo."),
+        .positive("O preço do serviço deve ser positivo.")
+        .max(10_000_000, "O preço não pode ser superior a 10 000 000."),
 );
 
 const duracaoSchema = z.preprocess(
@@ -28,7 +29,8 @@ const duracaoSchema = z.preprocess(
     z
         .number({ error: "A duração é obrigatória e deve ser um número." })
         .int("A duração deve ser um número inteiro de minutos.")
-        .positive("A duração do serviço deve ser positiva."),
+        .positive("A duração do serviço deve ser positiva.")
+        .max(1440, "A duração não pode ser superior a 1440 minutos."),
 );
 
 export const createServicoSchema = z.object({

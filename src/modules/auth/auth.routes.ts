@@ -142,7 +142,7 @@ router.post("/refresh", validateRequest(refreshTokenSchema), controller.refreshT
  *       204:
  *         description: Sessão encerrada com sucesso
  */
-router.post("/logout", controller.logout);
+router.post("/logout", validateRequest(refreshTokenSchema), controller.logout);
 
 /**
  * @swagger
