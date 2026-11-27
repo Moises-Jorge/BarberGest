@@ -3,6 +3,7 @@ import { AuthController } from "./auth.controller.js";
 import { ensureAuthenticated } from "../../middlewares/ensureAuthenticated.js";
 import { loginSchema, refreshTokenSchema } from "./auth.schemas.js";
 import { validateRequest } from "../../middlewares/validateRequest.js";
+import { loginRateLimit } from "../../middlewares/loginRateLimit.js";
 
 const router = Router();
 const controller = new AuthController();
@@ -80,7 +81,7 @@ const controller = new AuthController();
  *       401:
  *         description: Credenciais inválidas
  */
-router.post("/login/cliente", validateRequest(loginSchema),  controller.loginCliente);
+router.post("/login/cliente", validateRequest(loginSchema), loginRateLimit, controller.loginCliente);
 
 /**
  * @swagger
@@ -103,7 +104,7 @@ router.post("/login/cliente", validateRequest(loginSchema),  controller.loginCli
  *       401:
  *         description: Credenciais inválidas
  */
-router.post("/login/barbeiro", validateRequest(loginSchema), controller.loginBarbeiro);
+router.post("/login/barbeiro", validateRequest(loginSchema), loginRateLimit, controller.loginBarbeiro);
 
 /**
  * @swagger
