@@ -1,3 +1,4 @@
+import { deleteUnusedImage } from "../../utils/deleteUnusedImage.js";
 import { barbeiroRepository, BarbeiroRepository } from "./barbeiro.repository.js";
 import type { Barbeiro, CreateBarbeiroDTO, UpdateBarbeiroDTO, BarbeiroResponseDTO } from "./barbeiro.types.js";
 import bcrypt from "bcryptjs";
@@ -89,6 +90,10 @@ export class BarbeiroService {
          throw new Error("Erro ao atualizar dados do barbeiro.");
       }
 
+      if (barbeiro.imagemUrl) {
+         await deleteUnusedImage(existingBarbeiro.imagemUrl);
+      }
+
       return this.sanitizeBarbeiro(updatedBarbeiro);
     }
 
@@ -100,6 +105,7 @@ export class BarbeiroService {
         }
 
         await this.repository.remove(id);
+        await deleteUnusedImage(existingBarbeiro.imagemUrl);
     }
 
     public async checkBarbeiroAvailability(id: string, dataHour: Date): Promise<boolean> {

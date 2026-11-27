@@ -1,3 +1,4 @@
+import { deleteUnusedImage } from "../../utils/deleteUnusedImage.js";
 import bcrypt from "bcryptjs";
 import { clienteRepository, ClienteRepository } from "./cliente.repository.js";
 import type { Cliente, CreateClienteDTO, UpdateClienteDTO, ClienteResponseDTO } from "./cliente.types.js";
@@ -65,6 +66,10 @@ export class ClienteService {
             throw new Error("Erro ao atualizar dados do cliente.");
         }
 
+        if (cliente.imagemUrl) {
+            await deleteUnusedImage(existingCliente.imagemUrl);
+        }
+
         return this.sanitizeCliente(updatedClienteData);
     }
 
@@ -76,6 +81,7 @@ export class ClienteService {
         }
 
         await this.repository.remove(id);
+        await deleteUnusedImage(existingCliente.imagemUrl);
     }
 }
 

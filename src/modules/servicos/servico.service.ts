@@ -1,3 +1,4 @@
+import { deleteUnusedImage } from "../../utils/deleteUnusedImage.js";
 import { servicoRepository, ServicoRepository } from "./servico.repository.js";
 import type { Servico, CreateServicoDTO, UpdateServicoDTO } from "./servico.types.js";
 
@@ -33,7 +34,13 @@ export class ServicoService {
             throw new Error("A duração do serviço deve ser positiva.");
         }
 
-        return await this.repository.update(id, servico);
+        const updatedServico = await this.repository.update(id, servico);
+
+        if (servico.imagemUrl) {
+            await deleteUnusedImage(existingServico.imagemUrl);
+        }
+
+        return updatedServico;
     }
 
     public async getAll(): Promise<Servico[]> {
@@ -54,6 +61,7 @@ export class ServicoService {
             throw new Error("Serviço não encontrado.");
         }
         await this.repository.remove(id);
+        await deleteUnusedImage(existingServico.imagemUrl);
     }
 }
 
