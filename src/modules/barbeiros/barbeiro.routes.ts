@@ -251,7 +251,7 @@ router.get("/", ensureAuthenticated, controller.getAll);
  *       401:
  *         description: Não autenticado ou token inválido
  *       403:
- *         description: Apenas administradores podem remover barbeiros
+ *         description: Apenas o próprio barbeiro ou um administrador
  *       404:
  *         description: Registo não encontrado
  *       409:
@@ -259,7 +259,7 @@ router.get("/", ensureAuthenticated, controller.getAll);
  */
 router.get("/:id", ensureAuthenticated, validateRequest(idParamSchema), controller.getById);
 router.put("/:id", ensureAuthenticated, ensureOwnerOrAdmin, validateRequest(updateBarbeiroSchema), ensureAdminForIsAdmin, controller.update);
-router.delete("/:id", ensureAuthenticated, ensureAdmin, validateRequest(idParamSchema), controller.delete);
+router.delete("/:id", ensureAuthenticated, ensureOwnerOrAdmin, validateRequest(idParamSchema), controller.delete);
 
 /**
  * @swagger

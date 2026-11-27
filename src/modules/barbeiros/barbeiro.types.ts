@@ -7,6 +7,7 @@ export interface Barbeiro {
   senha?: string;
   imagemUrl?: string | null;
   isAdmin: boolean;
+  ativo: boolean;
   created_at: Date;
   updated_at: Date;
 }

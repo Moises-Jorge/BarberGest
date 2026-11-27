@@ -26,7 +26,7 @@ export class BarbeiroService {
 
    // sem nenhum administrador deixava de ser possível gerir o sistema
    private async ensureNotLastAdmin(barbeiro: Barbeiro): Promise<void> {
-      if (barbeiro.isAdmin && (await this.repository.countAdmins()) <= 1) {
+      if (barbeiro.isAdmin && barbeiro.ativo && (await this.repository.countAdmins()) <= 1) {
          throw new AppError("Não é possível remover o último administrador.", 409);
       }
    }
