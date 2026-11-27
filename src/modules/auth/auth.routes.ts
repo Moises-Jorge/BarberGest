@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { AuthController } from "./auth.controller.js";
 import { ensureAuthenticated } from "../../middlewares/ensureAuthenticated.js";
-import { tloginSchema, refreshTokenSchema } from "./auth.schemas.js";
+import { loginSchema, refreshTokenSchema } from "./auth.schemas.js";
 import { validateRequest } from "../../middlewares/validateRequest.js";
 
 const router = Router();
