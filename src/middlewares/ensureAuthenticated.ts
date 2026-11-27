@@ -22,17 +22,20 @@ export const ensureAuthenticated = async (req: Request, res: Response, next: Nex
         return res.status(401).json({ error: "Acess token inválido ou expirado" });
     }
 
-    // O token pode estar desactualizado: o utilizador pode ter sido apagado ou despromovido
+    // O token pode estar desactualizado: o utilizador pode ter sido apagado, desactivado ou despromovido
     let isAdmin = false;
 
     if (decoded.role === "BARBEIRO") {
         const barbeiro = await prisma.barbeiro.findUnique({
             where: { id: decoded.id },
-            select: { isAdmin: true },
+            select: { isAdmin: true, ativo: true },
         });
 
         if (!barbeiro)
             return res.status(401).json({ error: "Utilizador não encontrado" });
+
+        if (!barbeiro.ativo)
+            return res.status(403).json({ error: "Conta inactiva. Contacte o administrador." });
 
         isAdmin = barbeiro.isAdmin;
     } else {

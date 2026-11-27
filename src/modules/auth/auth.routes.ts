@@ -109,6 +109,8 @@ router.post("/login/cliente", validateRequest(loginSchema), loginRateLimit, cont
  *         description: Credenciais inválidas
  *       400:
  *         description: Dados inválidos
+ *       403:
+ *         description: Conta inactiva
  *       429:
  *         description: Demasiadas tentativas de login
  */

@@ -95,6 +95,9 @@ export class AuthService {
         if (!senhaVal)
             throw new AppError("Credenciais inválidas.", 401);
 
+        if (!barbeiro.ativo)
+            throw new AppError("Conta inactiva. Contacte o administrador.", 403);
+
         const { accessToken, refreshToken } = this.generateTokens(barbeiro.id, "BARBEIRO", barbeiro.isAdmin);
         await this.saveRefreshToken(barbeiro.id, "BARBEIRO", refreshToken);
 
@@ -137,6 +140,11 @@ export class AuthService {
         } catch {
             await prisma.refreshToken.delete({ where: { id: storedToken.id } });
             throw new AppError("Refresh token inválido ou expirado.", 401);
+        }
+
+        if (storedToken.barbeiro && !storedToken.barbeiro.ativo) {
+            await prisma.refreshToken.delete({ where: { id: storedToken.id } });
+            throw new AppError("Conta inactiva. Contacte o administrador.", 403);
         }
 
         let userId = "";
