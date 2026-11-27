@@ -10,9 +10,9 @@ export const telefoneSchema = z
     });
 
 export const senhaSchema = z 
-    .string({ error: "A palavra-passe é obritatória." })
+    .string({ error: "A palavra-passe é obrigatória." })
     .min(8, "A palavra-passe deve ter pelo menos 8 caracteres.")
-    .max(64, "A palavra-passe não pode conter espaços em branco.")
+    .max(64, "A palavra-passe não pode ter mais de 64 caracteres.")
     .refine((val) => !/\s/.test(val), {
         message: 
             "A palavra-passe não pode conter espaços em branco.",
