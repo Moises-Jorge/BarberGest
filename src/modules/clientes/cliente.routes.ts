@@ -4,6 +4,8 @@ import { handleMulterError, uploadConfig, validateRealFileType } from "../../con
 import { ensureAdmin } from "../../middlewares/ensureAdmin.js";
 import { ensureAuthenticated } from "../../middlewares/ensureAuthenticated.js";
 import { ensureOwnerOrAdmin } from "../../middlewares/ensureOwnerOrAdmin.js";
+import { validateRequest } from "../../middlewares/validateRequest.js";
+import { createClienteSchema, updateClienteSchema } from "./cliente.schemas.js";
 
 const router = Router();
 const controller = new ClienteController();
@@ -115,6 +117,7 @@ router.post(
   uploadConfig.single("imagem"),
   handleMulterError,
   validateRealFileType,
+  validateRequest(createClienteSchema),
   controller.createCliente
 );
 
@@ -185,7 +188,7 @@ router.get("/", ensureAuthenticated, ensureAdmin, controller.getClientes);
  *         description: Erro ao remover
  */
 router.get("/:id", ensureAuthenticated, controller.getClienteById);
-router.put("/:id", ensureAuthenticated, ensureOwnerOrAdmin, controller.updateCliente);
+router.put("/:id", ensureAuthenticated, ensureOwnerOrAdmin, validateRequest(updateClienteSchema), controller.updateCliente);
 router.delete("/:id", ensureAuthenticated, ensureOwnerOrAdmin, controller.deleteCliente);
 
 /**

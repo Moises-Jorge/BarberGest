@@ -49,3 +49,14 @@ export const nomeSchema = z
     export const uuidParamSchema = z.object({
         id: z.string().uuid("O ID fornecido não é um UUID válido."),
     });
+
+export const imagemUrlSchema = z.url({
+    protocol: /^https?$/,
+    error: "O URL da imagem é inválido.",
+});
+
+// Em multipart/form-data todos os campos chegam como texto
+export const booleanSchema = z.union(
+    [z.boolean(), z.stringbool({ truthy: ["true"], falsy: ["false"] })],
+    { error: "O valor deve ser true ou false." },
+);

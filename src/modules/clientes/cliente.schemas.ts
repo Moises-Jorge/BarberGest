@@ -1,12 +1,13 @@
 import { z } from "zod"
-import { nomeSchema, telefoneSchema, senhaSchema, uuidParamSchema } from "../../shared/validators/common.schemas.js"
+import { nomeSchema, telefoneSchema, senhaSchema, uuidParamSchema, imagemUrlSchema } from "../../shared/validators/common.schemas.js"
 
-export const CreateClienteSchema = z.object({
+export const createClienteSchema = z.object({
     body: z
         .object({
             nome: nomeSchema,
             telefone: telefoneSchema,
             senha: senhaSchema,
+            imagemUrl: imagemUrlSchema.optional(),
         })
         .strict()
 });

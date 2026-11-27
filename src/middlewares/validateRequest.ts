@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
+import { unlink } from "node:fs/promises";
 import { ZodError, type ZodType } from "zod";
 
 type RequestSchema = ZodType<{ body?: unknown; params?: unknown }>;
@@ -17,6 +18,9 @@ export const validateRequest = (schema: RequestSchema) => {
 
             return next();
         } catch (error) {
+            // O multer já gravou o ficheiro: remover se o pedido for rejeitado
+            if (req.file) await unlink(req.file.path).catch(() => {});
+
             if (error instanceof ZodError) {
                 const formattedErrors = error.issues.map((err) => ({
                     campo: err.path.slice(1).join(".") || err.path.join("."),

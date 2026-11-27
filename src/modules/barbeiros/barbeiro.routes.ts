@@ -4,6 +4,8 @@ import { handleMulterError, uploadConfig, validateRealFileType } from "../../con
 import { ensureAuthenticated } from "../../middlewares/ensureAuthenticated.js";
 import { ensureAdmin } from "../../middlewares/ensureAdmin.js";
 import { ensureOwnerOrAdmin } from "../../middlewares/ensureOwnerOrAdmin.js";
+import { validateRequest } from "../../middlewares/validateRequest.js";
+import { createBarbeiroSchema, updateBarbeiroSchema } from "./barbeiros.schema.js";
 
 const router = Router();
 const controller = new BarbeiroController();
@@ -149,6 +151,7 @@ router.post(
   uploadConfig.single("imagem"),
   handleMulterError,
   validateRealFileType,
+  validateRequest(createBarbeiroSchema),
   controller.create
 );
 
@@ -223,7 +226,7 @@ router.get("/", ensureAuthenticated, controller.getAll);
  *         description: Erro ao remover
  */
 router.get("/:id", ensureAuthenticated, controller.getById);
-router.put("/:id", ensureAuthenticated, ensureOwnerOrAdmin, controller.update);
+router.put("/:id", ensureAuthenticated, ensureOwnerOrAdmin, validateRequest(updateBarbeiroSchema), controller.update);
 router.delete("/:id", ensureAuthenticated, ensureOwnerOrAdmin, controller.delete);
 
 /**
