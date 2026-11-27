@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 
 export const telefoneSchema = z
-    .string({ required_error: "O número de telefone é obrigatório"})
+    .string({ error: "O número de telefone é obrigatório"})
     .transform((val) => val.replace(/\s+/g, ""))
     .refine((val) => /^9\d{8}$/.test(val), {
         message:
@@ -10,7 +10,7 @@ export const telefoneSchema = z
     });
 
 export const senhaSchema = z 
-    .string({ required_error: "A palavra-passe é obritatória." })
+    .string({ error: "A palavra-passe é obritatória." })
     .min(8, "A palavra-passe deve ter pelo menos 8 caracteres.")
     .max(64, "A palavra-passe não pode conter espaços em branco.")
     .refine((val) => !/\s/.test(val), {
@@ -31,7 +31,7 @@ export const senhaSchema = z
     });
 
 export const nomeSchema = z
-    .string({ required_error: "O nome é obrigatório" })
+    .string({ error: "O nome é obrigatório" })
     .transform((val) => val.trim().replace(/\s+/g, " "))
     .refine((val) => val.length >= 2, {
         message:

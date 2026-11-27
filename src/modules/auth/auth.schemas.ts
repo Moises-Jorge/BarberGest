@@ -6,7 +6,7 @@ export const loginSchema = z.object({
         .object({
             telefone: telefoneSchema,
             senha: z
-                .string({ required_error: "A palavra-passe é obrigatória." })
+                .string({ error: "A palavra-passe é obrigatória." })
                 .min(1, "A palavra-passe não pode ser vazia."),
         })
         .strict(), 
@@ -16,7 +16,7 @@ export const refreshTokenSchema = z.object({
     body: z
         .object({
             refreshToken: z
-                .string({ required_error: "O refresh token é obrigatório."})
+                .string({ error: "O refresh token é obrigatório."})
                 .min(1, "O refresh token não pode ser vazio."),
         })
         .strict(),
