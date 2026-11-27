@@ -28,8 +28,8 @@ echo "🌱 Verificando/Criando o Administrador inicial..."
 npx prisma db seed
 
 echo -e "${GREEN}[4/4] Servidor pronto! Iniciando a aplicação...${NC}"
-echo -e "${GREEN}API disponível em: http://localhost:3000${NC}"
-echo -e "${GREEN}Swagger UI em:    http://localhost:3000/api-docs${NC}"
+echo -e "${GREEN}API disponível em: http://localhost:4000${NC}"
+echo -e "${GREEN}Swagger UI em:    http://localhost:4000/api-docs${NC}"
 echo -e "--------------------------------------------------"
 
 npm run dev
