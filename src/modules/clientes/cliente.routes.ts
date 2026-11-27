@@ -34,6 +34,17 @@ const controller = new ClienteController();
  *         imagemUrl:
  *           type: string
  *           example: "http://localhost:3000/files/cliente.png"
+ *     ClienteCriadoResponse:
+ *       allOf:
+ *         - $ref: '#/components/schemas/ClienteResponse'
+ *         - type: object
+ *           properties:
+ *             accessToken:
+ *               type: string
+ *               description: Token JWT de curta duração
+ *             refreshToken:
+ *               type: string
+ *               description: Token JWT de longa duração
  *     ClienteResponse:
  *       type: object
  *       properties:
@@ -97,7 +108,7 @@ const controller = new ClienteController();
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ClienteResponse'
+ *               $ref: '#/components/schemas/ClienteCriadoResponse'
  *       400:
  *         description: Erro na validação dos dados ou telefone em uso
  *       409:

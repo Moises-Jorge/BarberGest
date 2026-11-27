@@ -55,6 +55,13 @@ export class AuthService {
         });
     }
 
+    // Gera o par de tokens e guarda o refresh token (substitui a sessão anterior)
+    public async createSession(userId: string, role: "CLIENTE" | "BARBEIRO", isAdmin: boolean): Promise<RefreshTokenResponse> {
+        const tokens = this.generateTokens(userId, role, isAdmin);
+        await this.saveRefreshToken(userId, role, tokens.refreshToken);
+        return tokens;
+    }
+
     public async loginCliente(data: LoginDTO): Promise<AuthResponse> {
         const cliente = await prisma.cliente.findUnique({
             where: { telefone: data.telefone },
@@ -67,8 +74,7 @@ export class AuthService {
         if (!senhaVal)
             throw new AppError("Credenciais inválidas.", 401);
 
-        const { accessToken, refreshToken } = this.generateTokens(cliente.id, "CLIENTE", false);
-        await this.saveRefreshToken(cliente.id, "CLIENTE", refreshToken);
+        const { accessToken, refreshToken } = await this.createSession(cliente.id, "CLIENTE", false);
 
         return {
             user: {
@@ -98,8 +104,7 @@ export class AuthService {
         if (!barbeiro.ativo)
             throw new AppError("Conta inactiva. Contacte o administrador.", 403);
 
-        const { accessToken, refreshToken } = this.generateTokens(barbeiro.id, "BARBEIRO", barbeiro.isAdmin);
-        await this.saveRefreshToken(barbeiro.id, "BARBEIRO", refreshToken);
+        const { accessToken, refreshToken } = await this.createSession(barbeiro.id, "BARBEIRO", barbeiro.isAdmin);
 
         return {
             user: {
@@ -160,13 +165,7 @@ export class AuthService {
             isAdmin = storedToken.barbeiro.isAdmin;
         }
 
-        const { accessToken, refreshToken: newRefreshToken } = this.generateTokens(userId, role, isAdmin);
-        await this.saveRefreshToken(userId, role, newRefreshToken);
-
-        return {
-            accessToken,
-            refreshToken: newRefreshToken,
-        };
+        return this.createSession(userId, role, isAdmin);
     }
 
     public async logout(tokenEnviado: string): Promise<void> {

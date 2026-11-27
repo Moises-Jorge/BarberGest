@@ -1,9 +1,13 @@
 import { buildImageUrl } from "../../config/imageUrl.js";
 import type { Request, Response } from "express";
 import { clienteService, ClienteService } from "./cliente.service.js";
+import { authService, AuthService } from "../auth/auth.service.js";
 
 export class ClienteController {
-    constructor(private readonly service: ClienteService = clienteService) {}
+    constructor(
+        private readonly service: ClienteService = clienteService,
+        private readonly auth: AuthService = authService,
+    ) {}
 
     public createCliente = async (req: Request, res: Response): Promise<Response> => {
         let imagemUrl: string | undefined = undefined;
@@ -21,7 +25,15 @@ export class ClienteController {
             ...(imagemUrl !== undefined && { imagemUrl }),
         });
 
-        return res.status(201).json(cliente);
+        // A conta já existe: se a sessão falhar, o registo continua válido e o cliente pode fazer login
+        const tokens = await this.auth
+            .createSession(cliente.id, "CLIENTE", false)
+            .catch((error) => {
+                console.error("Erro ao criar a sessão do novo cliente:", error);
+                return {};
+            });
+
+        return res.status(201).json({ ...cliente, ...tokens });
     };
 
     public getClientes = async (req: Request, res: Response): Promise<Response> => {
