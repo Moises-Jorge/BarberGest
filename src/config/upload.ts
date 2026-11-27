@@ -97,7 +97,8 @@ export const validateRealFileType = async (
 // Apaga o ficheiro gravado pelo multer quando o pedido termina com erro
 export const removeUploadOnError = (req: Request, res: Response, next: NextFunction) => {
   res.on("finish", () => {
-    if (req.file && res.statusCode >= 400) {
+    // em erros do multer o req.file pode existir sem path
+    if (req.file?.path && res.statusCode >= 400) {
       // o ficheiro pode já ter sido apagado por outro middleware
       fs.unlink(req.file.path, () => {});
     }
