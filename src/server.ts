@@ -18,6 +18,7 @@ if (!fs.existsSync(UPLOADS_FOLDER)) {
   fs.mkdirSync(UPLOADS_FOLDER, { recursive: true });
 }
 
+app.disable('x-powered-by');
 app.use(cors());
 app.use(express.json());
 
