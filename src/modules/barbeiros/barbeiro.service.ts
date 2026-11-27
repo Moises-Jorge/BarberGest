@@ -51,7 +51,7 @@ export class BarbeiroService {
       const barbeiro = await this.repository.getByID(id);
 
       if (!barbeiro) {
-         throw new Error("Barbeiro não encontrado.");
+         return undefined;
       }
 
       return this.sanitizeBarbeiro(barbeiro);
