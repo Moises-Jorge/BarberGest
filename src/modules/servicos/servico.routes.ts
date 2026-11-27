@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { ServicoController } from "./servico.controller.js";
-import { uploadConfig, handleMulterError, validateRealFileType } from "../../config/upload.js";
+import { uploadConfig, handleMulterError, validateRealFileType, removeUploadOnError } from "../../config/upload.js";
 import { ensureAuthenticated } from "../../middlewares/ensureAuthenticated.js";
 import { ensureAdmin } from "../../middlewares/ensureAdmin.js";
 import { validateRequest } from "../../middlewares/validateRequest.js";
@@ -147,6 +147,7 @@ router.post(
   "/",
   ensureAuthenticated,
   ensureAdmin,
+  removeUploadOnError,
   uploadConfig.single("imagem"),
   handleMulterError,
   validateRealFileType,
@@ -270,6 +271,7 @@ router.patch(
   ensureAuthenticated,
   ensureAdmin,
   validateRequest(idParamSchema),
+  removeUploadOnError,
   uploadConfig.single("imagem"),
   handleMulterError,
   validateRealFileType,

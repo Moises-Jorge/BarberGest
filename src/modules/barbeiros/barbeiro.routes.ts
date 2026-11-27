@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { BarbeiroController } from "./barbeiro.controller.js";
-import { handleMulterError, uploadConfig, validateRealFileType } from "../../config/upload.js";
+import { handleMulterError, uploadConfig, validateRealFileType, removeUploadOnError } from "../../config/upload.js";
 import { ensureAuthenticated } from "../../middlewares/ensureAuthenticated.js";
 import { ensureAdmin } from "../../middlewares/ensureAdmin.js";
 import { ensureOwnerOrAdmin } from "../../middlewares/ensureOwnerOrAdmin.js";
@@ -150,6 +150,7 @@ router.post(
   "/",
   ensureAuthenticated,
   ensureAdmin,
+  removeUploadOnError,
   uploadConfig.single("imagem"),
   handleMulterError,
   validateRealFileType,
@@ -274,6 +275,7 @@ router.patch(
   ensureAuthenticated, 
   ensureOwnerOrAdmin,
   validateRequest(idParamSchema),
+  removeUploadOnError,
   uploadConfig.single("imagem"),
   handleMulterError,
   validateRealFileType,

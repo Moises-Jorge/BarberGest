@@ -93,3 +93,14 @@ export const validateRealFileType = async (
     return res.status(500).json({ error: "Erro ao validar o formato da imagem." });
   }
 };
+
+// Apaga o ficheiro gravado pelo multer quando o pedido termina com erro
+export const removeUploadOnError = (req: Request, res: Response, next: NextFunction) => {
+  res.on("finish", () => {
+    if (req.file && res.statusCode >= 400) {
+      // o ficheiro pode já ter sido apagado por outro middleware
+      fs.unlink(req.file.path, () => {});
+    }
+  });
+  return next();
+};
