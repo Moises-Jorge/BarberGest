@@ -1,3 +1,4 @@
+import { AppError } from "../../shared/errors/AppError.js";
 import { deleteUnusedImage } from "../../utils/deleteUnusedImage.js";
 import bcrypt from "bcryptjs";
 import { clienteRepository, ClienteRepository } from "./cliente.repository.js";
@@ -15,7 +16,7 @@ export class ClienteService {
         const clienteExists = await this.repository.getByPhone(cliente.telefone);
 
         if (clienteExists) {
-            throw new Error("Já existe um cliente com este telefone.");
+            throw new AppError("Já existe um cliente com este telefone.", 409);
         }
 
         const passHash = await bcrypt.hash(cliente.senha, 8);
@@ -33,7 +34,7 @@ export class ClienteService {
         const cliente = await this.repository.getById(id);
 
         if (!cliente) {
-            throw new Error("Cliente não encontrado.");
+            throw new AppError("Cliente não encontrado.", 404);
         }
 
         return this.sanitizeCliente(cliente);
@@ -43,14 +44,14 @@ export class ClienteService {
         const existingCliente = await this.repository.getById(id);
 
         if (!existingCliente) {
-            throw new Error("Cliente não encontrado.");
+            throw new AppError("Cliente não encontrado.", 404);
         }
 
         if (cliente.telefone && cliente.telefone !== existingCliente.telefone) {
             const clienteExists = await this.repository.getByPhone(cliente.telefone);
 
             if (clienteExists) {
-                throw new Error("O numero informado já está em uso por outro cliente.");
+                throw new AppError("O numero informado já está em uso por outro cliente.", 409);
             }
         }
 
@@ -63,7 +64,7 @@ export class ClienteService {
         const updatedClienteData = await this.repository.update(id, updatedCliente);
 
         if (!updatedClienteData) {
-            throw new Error("Erro ao atualizar dados do cliente.");
+            throw new AppError("Erro ao atualizar dados do cliente.", 500);
         }
 
         if (cliente.imagemUrl) {
@@ -77,7 +78,7 @@ export class ClienteService {
         const existingCliente = await this.repository.getById(id);
 
         if (!existingCliente) {
-            throw new Error("Cliente não encontrado.");
+            throw new AppError("Cliente não encontrado.", 404);
         }
 
         await this.repository.remove(id);

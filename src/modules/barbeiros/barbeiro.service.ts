@@ -1,3 +1,4 @@
+import { AppError } from "../../shared/errors/AppError.js";
 import { deleteUnusedImage } from "../../utils/deleteUnusedImage.js";
 import { barbeiroRepository, BarbeiroRepository } from "./barbeiro.repository.js";
 import type { Barbeiro, CreateBarbeiroDTO, UpdateBarbeiroDTO, BarbeiroResponseDTO } from "./barbeiro.types.js";
@@ -15,11 +16,11 @@ export class BarbeiroService {
       const regexHore = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
         if (!regexHore.test(h_entrada) || !regexHore.test(h_saida)) {
-            throw new Error("A hora de entrada e saída deve estar no formato HH:mm.");
+            throw new AppError("A hora de entrada e saída deve estar no formato HH:mm.", 400);
         }
 
         if (h_entrada >= h_saida) {
-            throw new Error("A hora de entrada deve ser menor que a hora de saída.");
+            throw new AppError("A hora de entrada deve ser menor que a hora de saída.", 400);
         }
    }
 
@@ -27,7 +28,7 @@ export class BarbeiroService {
             const barbeiroExists = await this.repository.getByPhone(barbeiro.telefone);
 
             if (barbeiroExists) {
-                throw new Error("Já existe um barbeiro com este telefone.");
+                throw new AppError("Já existe um barbeiro com este telefone.", 409);
             }
 
             this.validateHour(barbeiro.h_entrada, barbeiro.h_saida);
@@ -62,14 +63,14 @@ export class BarbeiroService {
       const existingBarbeiro = await this.repository.getByID(id);
 
       if (!existingBarbeiro) {
-         throw new Error("Barbeiro não encontrado.");
+         throw new AppError("Barbeiro não encontrado.", 404);
       }
 
       if (barbeiro.telefone && barbeiro.telefone !== existingBarbeiro.telefone) {
          const barbeiroExists = await this.repository.getByPhone(barbeiro.telefone);
 
          if (barbeiroExists) {
-            throw new Error("Já existe um barbeiro com este telefone.");
+            throw new AppError("Já existe um barbeiro com este telefone.", 409);
          }
       }
 
@@ -87,7 +88,7 @@ export class BarbeiroService {
       const updatedBarbeiro = await this.repository.update(id, updatedBarber);
       
       if (!updatedBarbeiro) {
-         throw new Error("Erro ao atualizar dados do barbeiro.");
+         throw new AppError("Erro ao atualizar dados do barbeiro.", 500);
       }
 
       if (barbeiro.imagemUrl) {
@@ -101,7 +102,7 @@ export class BarbeiroService {
         const existingBarbeiro = await this.repository.getByID(id);
 
         if (!existingBarbeiro) {
-            throw new Error("Barbeiro não encontrado.");
+            throw new AppError("Barbeiro não encontrado.", 404);
         }
 
         await this.repository.remove(id);
@@ -112,7 +113,7 @@ export class BarbeiroService {
         const existingBarbeiro = await this.repository.getByID(id);
 
         if (!existingBarbeiro) {
-            throw new Error("Barbeiro não encontrado.");
+            throw new AppError("Barbeiro não encontrado.", 404);
         }
 
         const hours = String(dataHour.getHours()).padStart(2, '0');
@@ -121,7 +122,7 @@ export class BarbeiroService {
 
         const isAvailable = await this.repository.checkHour(id, hourString);
         if (!isAvailable) {
-            throw new Error("Barbeiro não está disponível neste horário.");
+            throw new AppError("Barbeiro não está disponível neste horário.", 409);
         }
 
         return isAvailable;
