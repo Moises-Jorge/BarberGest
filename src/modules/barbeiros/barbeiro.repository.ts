@@ -48,6 +48,10 @@ export class BarbeiroRepository {
         });
     }
 
+    public async countAdmins(): Promise<number> {
+        return await prisma.barbeiro.count({ where: { isAdmin: true } });
+    }
+
     public async remove(id: string): Promise<boolean> {
         await prisma.barbeiro.delete({
             where: { id },

@@ -231,7 +231,7 @@ router.get("/", ensureAuthenticated, controller.getAll);
  */
 router.get("/:id", ensureAuthenticated, validateRequest(idParamSchema), controller.getById);
 router.put("/:id", ensureAuthenticated, ensureOwnerOrAdmin, validateRequest(updateBarbeiroSchema), ensureAdminForIsAdmin, controller.update);
-router.delete("/:id", ensureAuthenticated, ensureOwnerOrAdmin, validateRequest(idParamSchema), controller.delete);
+router.delete("/:id", ensureAuthenticated, ensureAdmin, validateRequest(idParamSchema), controller.delete);
 
 /**
  * @swagger

@@ -24,6 +24,13 @@ export class BarbeiroService {
         }
    }
 
+   // sem nenhum administrador deixava de ser possível gerir o sistema
+   private async ensureNotLastAdmin(barbeiro: Barbeiro): Promise<void> {
+      if (barbeiro.isAdmin && (await this.repository.countAdmins()) <= 1) {
+         throw new AppError("Não é possível remover o último administrador.", 409);
+      }
+   }
+
    public async createBarbeiro(barbeiro: CreateBarbeiroDTO): Promise<BarbeiroResponseDTO> {
             const barbeiroExists = await this.repository.getByPhone(barbeiro.telefone);
 
@@ -74,6 +81,10 @@ export class BarbeiroService {
          }
       }
 
+      if (barbeiro.isAdmin === false) {
+         await this.ensureNotLastAdmin(existingBarbeiro);
+      }
+
       const h_entrada = barbeiro.h_entrada ?? existingBarbeiro.h_entrada;
       const h_saida = barbeiro.h_saida ?? existingBarbeiro.h_saida;
       this.validateHour(h_entrada, h_saida);
@@ -105,6 +116,7 @@ export class BarbeiroService {
             throw new AppError("Barbeiro não encontrado.", 404);
         }
 
+        await this.ensureNotLastAdmin(existingBarbeiro);
         await this.repository.remove(id);
         await deleteUnusedImage(existingBarbeiro.imagemUrl);
     }
