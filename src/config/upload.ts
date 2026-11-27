@@ -104,3 +104,11 @@ export const removeUploadOnError = (req: Request, res: Response, next: NextFunct
   });
   return next();
 };
+
+// O Swagger e outros clientes enviam "imagem" como texto vazio quando não se escolhe ficheiro
+export const ignoreEmptyImageField = (req: Request, _res: Response, next: NextFunction) => {
+  if (req.body?.imagem === "") {
+    delete req.body.imagem;
+  }
+  return next();
+};
