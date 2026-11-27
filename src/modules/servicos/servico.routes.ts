@@ -73,10 +73,10 @@ const controller = new ServicoController();
  *           nullable: true
  *           description: URL da imagem do serviço
  *           example: "http://localhost:3000/files/7a8b9c-degrade.png"
- *         createdAt:
+ *         created_at:
  *           type: string
  *           format: date-time
- *         updatedAt:
+ *         updated_at:
  *           type: string
  *           format: date-time
  */
@@ -130,6 +130,10 @@ const controller = new ServicoController();
  *               $ref: '#/components/schemas/ServicoResponse'
  *       400:
  *         description: Erro nos dados enviados
+ *       401:
+ *         description: Não autenticado ou token inválido
+ *       403:
+ *         description: Sem permissão
  *   get:
  *     summary: Retorna a lista de todos os serviços
  *     tags: [Serviços]
@@ -142,6 +146,8 @@ const controller = new ServicoController();
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/ServicoResponse'
+ *       401:
+ *         description: Não autenticado ou token inválido
  */
 router.post(
   "/",
@@ -179,6 +185,10 @@ router.get("/", ensureAuthenticated, controller.getAllServicos);
  *               $ref: '#/components/schemas/ServicoResponse'
  *       404:
  *         description: Serviço não encontrado
+ *       400:
+ *         description: Dados inválidos
+ *       401:
+ *         description: Não autenticado ou token inválido
  *   put:
  *     summary: Atualiza os dados de um serviço
  *     tags: [Serviços]
@@ -210,6 +220,12 @@ router.get("/", ensureAuthenticated, controller.getAllServicos);
  *         description: Serviço atualizado com sucesso
  *       400:
  *         description: Erro na atualização
+ *       401:
+ *         description: Não autenticado ou token inválido
+ *       403:
+ *         description: Sem permissão
+ *       404:
+ *         description: Registo não encontrado
  *   delete:
  *     summary: Remove um serviço
  *     tags: [Serviços]
@@ -224,6 +240,12 @@ router.get("/", ensureAuthenticated, controller.getAllServicos);
  *         description: Serviço removido com sucesso
  *       400:
  *         description: Erro na remoção
+ *       401:
+ *         description: Não autenticado ou token inválido
+ *       403:
+ *         description: Sem permissão
+ *       404:
+ *         description: Registo não encontrado
  */
 router.get("/:id", ensureAuthenticated, validateRequest(idParamSchema), controller.getServicoById);
 router.put("/:id", ensureAuthenticated, ensureAdmin, validateRequest(updateServicoSchema), controller.updateServico);
@@ -266,6 +288,10 @@ router.delete("/:id", ensureAuthenticated, ensureAdmin, validateRequest(idParamS
  *         description: Nenhuma imagem enviada ou formato inválido
  *       404:
  *         description: Serviço não encontrado
+ *       401:
+ *         description: Não autenticado ou token inválido
+ *       403:
+ *         description: Sem permissão
  */
 router.patch(
   "/:id/imagem",

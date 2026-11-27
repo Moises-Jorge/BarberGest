@@ -80,6 +80,10 @@ const controller = new AuthController();
  *               $ref: '#/components/schemas/AuthResponse'
  *       401:
  *         description: Credenciais inválidas
+ *       400:
+ *         description: Dados inválidos
+ *       429:
+ *         description: Demasiadas tentativas de login
  */
 router.post("/login/cliente", validateRequest(loginSchema), loginRateLimit, controller.loginCliente);
 
@@ -103,6 +107,10 @@ router.post("/login/cliente", validateRequest(loginSchema), loginRateLimit, cont
  *               $ref: '#/components/schemas/AuthResponse'
  *       401:
  *         description: Credenciais inválidas
+ *       400:
+ *         description: Dados inválidos
+ *       429:
+ *         description: Demasiadas tentativas de login
  */
 router.post("/login/barbeiro", validateRequest(loginSchema), loginRateLimit, controller.loginBarbeiro);
 
@@ -123,6 +131,8 @@ router.post("/login/barbeiro", validateRequest(loginSchema), loginRateLimit, con
  *         description: Novo par de tokens gerado com sucesso
  *       401:
  *         description: Refresh token inválido ou expirado
+ *       400:
+ *         description: Dados inválidos
  */
 router.post("/refresh", validateRequest(refreshTokenSchema), controller.refreshToken);
 
@@ -141,6 +151,8 @@ router.post("/refresh", validateRequest(refreshTokenSchema), controller.refreshT
  *     responses:
  *       204:
  *         description: Sessão encerrada com sucesso
+ *       400:
+ *         description: Dados inválidos
  */
 router.post("/logout", validateRequest(refreshTokenSchema), controller.logout);
 
