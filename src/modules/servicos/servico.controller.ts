@@ -24,7 +24,7 @@ export class ServicoController {
                 descricao: req.body.descricao,
                 preco: Number(req.body.preco),
                 duracao: Number(req.body.duracao),
-                ativo,
+                ...(ativo !== undefined && { ativo }),
                 imagemUrl: imagemUrl || req.body.imagemUrl,
             };
 
@@ -35,7 +35,7 @@ export class ServicoController {
         }
     };
 
-    public updateServico = async (req: Request, res: Response): Promise<Response> => {
+    public updateServico = async (req: Request<{ id: string }>, res: Response): Promise<Response> => {
         try {
             const { id } = req.params;
             const updatedData = req.body;
@@ -55,7 +55,7 @@ export class ServicoController {
         }
     };
 
-    public uploadImage = async (req: Request, res: Response): Promise<Response> => {
+    public uploadImage = async (req: Request<{ id: string }>, res: Response): Promise<Response> => {
         try {
             const { id } = req.params;
 
@@ -82,7 +82,7 @@ export class ServicoController {
         }
     };
 
-    public getServicoById = async (req: Request, res: Response): Promise<Response> => {
+    public getServicoById = async (req: Request<{ id: string }>, res: Response): Promise<Response> => {
         try {
             const { id } = req.params;
             const servico = await this.service.getById(id);
@@ -92,7 +92,7 @@ export class ServicoController {
         }
     };
 
-    public deleteServico = async (req: Request, res: Response): Promise<Response> => {
+    public deleteServico = async (req: Request<{ id: string }>, res: Response): Promise<Response> => {
         try {
             const { id } = req.params;
             await this.service.remove(id);

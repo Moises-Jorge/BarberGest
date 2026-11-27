@@ -10,6 +10,9 @@ export const ensureAuthenticated = (req: Request, res: Response, next: NextFunct
 
     const [, token] = authHeader.split(" ");
 
+    if (!token)
+        return res.status(401).json({ error: "Token de autenticação não fornecido" });
+
     try {
         const secret = process.env.JWT_SECRET;
         

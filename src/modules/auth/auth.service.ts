@@ -18,13 +18,13 @@ export class AuthService {
         const accessToken = jwt.sign(
             { id: userId, role, isAdmin },
             accessSecret,
-            { expiresIn: accessExpires }
+            { expiresIn: accessExpires as NonNullable<jwt.SignOptions["expiresIn"]> }
         );
 
         const refreshToken = jwt.sign(
             { id: userId, role },
             refreshSecret,
-            { expiresIn: refreshExpires }
+            { expiresIn: refreshExpires as NonNullable<jwt.SignOptions["expiresIn"]> }
         );
 
         return { accessToken, refreshToken }

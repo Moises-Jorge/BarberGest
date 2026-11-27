@@ -4,7 +4,7 @@ import { barbeiroService, BarbeiroService } from "./barbeiro.service.js";
 export class BarbeiroController {
     constructor(private readonly service: BarbeiroService = barbeiroService) {}
 
-    public create = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+    public create = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
         try {
             let imagemUrl: string | undefined = undefined;
 
@@ -25,8 +25,8 @@ export class BarbeiroController {
                 senha: req.body.senha,
                 h_entrada: req.body.h_entrada,
                 h_saida: req.body.h_saida,
-                imagemUrl,
-                isAdmin,
+                ...(imagemUrl !== undefined && { imagemUrl }),
+                ...(isAdmin !== undefined && { isAdmin }),
             });
 
             return res.status(201).json(barbeiro);
@@ -44,7 +44,7 @@ export class BarbeiroController {
         }
     };
 
-    public getById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public getById = async (req: Request<{ id: string }>, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { id } = req.params;
 
@@ -65,7 +65,7 @@ export class BarbeiroController {
         }
     };
 
-    public update = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+    public update = async (req: Request<{ id: string }>, res: Response, next: NextFunction): Promise<Response> => {
         try {
             const { id } = req.params;
             const updatedBarber = { ...req.body };
@@ -81,7 +81,7 @@ export class BarbeiroController {
         }
     };
 
-    public uploadImagem = async (req: Request, res: Response): Promise<Response> => {
+    public uploadImagem = async (req: Request<{ id: string }>, res: Response): Promise<Response> => {
         try {
         const { id } = req.params;
         if (!req.file) {
@@ -97,7 +97,7 @@ export class BarbeiroController {
         }
     };
 
-    public delete = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public delete = async (req: Request<{ id: string }>, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { id } = req.params;
             await this.service.deleteBarbeiro(id);

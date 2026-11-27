@@ -1,6 +1,5 @@
 import { prisma } from '../../database/prisma.js';
 import type { Barbeiro, CreateBarbeiroDTO, UpdateBarbeiroDTO } from './barbeiro.types.js';
-import bcrypt from "bcryptjs";
 
 export class BarbeiroRepository {
 
@@ -11,26 +10,26 @@ export class BarbeiroRepository {
         return newBarbeiro;
     }
 
-    public async update(id: string, barbeiro: UpdateBarbeiroDTO): Promise<Barbeiro | undefined> {
+    public async update(id: string, barbeiro: UpdateBarbeiroDTO): Promise<Barbeiro | null> {
        return await prisma.barbeiro.update({
         where: { id },
         data: barbeiro,
       });
     }
 
-    public async getByID(id: string): Promise<Barbeiro | undefined> {
+    public async getByID(id: string): Promise<Barbeiro | null> {
         return await prisma.barbeiro.findUnique({
             where: { id },
         });
     }
 
-    public async getByName(nome: string): Promise<Barbeiro | undefined> {
-        return await prisma.barbeiro.findUnique({
+    public async getByName(nome: string): Promise<Barbeiro | null> {
+        return await prisma.barbeiro.findFirst({
             where: { nome },
         });
     }
 
-    public async getByPhone(telefone: string): Promise<Barbeiro | undefined> {
+    public async getByPhone(telefone: string): Promise<Barbeiro | null> {
         return await prisma.barbeiro.findUnique({
             where: { telefone },
         });

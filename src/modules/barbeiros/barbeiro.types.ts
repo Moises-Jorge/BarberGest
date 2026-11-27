@@ -7,8 +7,8 @@ export interface Barbeiro {
   senha?: string;
   imagemUrl?: string | null;
   isAdmin: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface CreateBarbeiroDTO {

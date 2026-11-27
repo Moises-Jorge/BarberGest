@@ -18,7 +18,7 @@ export class ClienteController {
                 nome: req.body.nome,
                 telefone: req.body.telefone,
                 senha: req.body.senha,
-                imagemUrl,
+                ...(imagemUrl !== undefined && { imagemUrl }),
             });
 
             return res.status(201).json(cliente);
@@ -36,7 +36,7 @@ export class ClienteController {
         }
     };
 
-    public getClienteById = async (req: Request, res: Response): Promise<Response> => {
+    public getClienteById = async (req: Request<{ id: string }>, res: Response): Promise<Response> => {
         try {
             const { id } = req.params;
             const cliente = await this.service.getClienteById(id);
@@ -46,7 +46,7 @@ export class ClienteController {
         }
     };
 
-    public updateCliente = async (req: Request, res: Response): Promise<Response> => {
+    public updateCliente = async (req: Request<{ id: string }>, res: Response): Promise<Response> => {
         try {
             const { id } = req.params;
             const updatedCliente = req.body;
@@ -57,7 +57,7 @@ export class ClienteController {
         }
     };
 
-    public uploadImagem = async (req: Request, res: Response): Promise<Response> => {
+    public uploadImagem = async (req: Request<{ id: string }>, res: Response): Promise<Response> => {
         try {
         const { id } = req.params;
         if (!req.file) {
@@ -73,7 +73,7 @@ export class ClienteController {
         }
     };
 
-    public deleteCliente = async (req: Request, res: Response): Promise<Response> => {
+    public deleteCliente = async (req: Request<{ id: string }>, res: Response): Promise<Response> => {
         try {
             const { id } = req.params;
             await this.service.deleteCliente(id);

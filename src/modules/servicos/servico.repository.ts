@@ -8,7 +8,7 @@ export class ServicoRepository {
         });
     }
 
-    public async update(id: number, servico: UpdateServicoDTO): Promise<Servico | null> {
+    public async update(id: string, servico: UpdateServicoDTO): Promise<Servico | null> {
         return await prisma.servico.update({
             where: { id },
             data: servico,
@@ -19,13 +19,13 @@ export class ServicoRepository {
         return await prisma.servico.findMany();
     }
 
-    public async getById(id: number): Promise<Servico | null> {
+    public async getById(id: string): Promise<Servico | null> {
         return await prisma.servico.findUnique({
             where: { id },
         });
     }
 
-    public async remove(id: number): Promise<boolean> {
+    public async remove(id: string): Promise<boolean> {
         await prisma.servico.delete({
             where: { id },
         });

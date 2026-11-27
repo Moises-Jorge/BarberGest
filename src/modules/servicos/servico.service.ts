@@ -19,7 +19,7 @@ export class ServicoService {
         });
     }
 
-    public async update(id: number, servico: UpdateServicoDTO): Promise<Servico | null> {
+    public async update(id: string, servico: UpdateServicoDTO): Promise<Servico | null> {
         const existingServico = await this.repository.getById(id);
         if (!existingServico) {
             throw new Error("Serviço não encontrado.");
@@ -40,7 +40,7 @@ export class ServicoService {
         return await this.repository.getAll();
     }
 
-    public async getById(id: number): Promise<Servico | null> {
+    public async getById(id: string): Promise<Servico | null> {
         const servico = await this.repository.getById(id);
         if (!servico) {
             throw new Error("Serviço não encontrado.");
@@ -48,7 +48,7 @@ export class ServicoService {
         return servico;
     }
 
-    public async remove(id: number): Promise<void> {
+    public async remove(id: string): Promise<void> {
         const existingServico = await this.repository.getById(id);
         if (!existingServico) {
             throw new Error("Serviço não encontrado.");
