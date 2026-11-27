@@ -3,6 +3,9 @@ import { ServicoController } from "./servico.controller.js";
 import { uploadConfig, handleMulterError, validateRealFileType } from "../../config/upload.js";
 import { ensureAuthenticated } from "../../middlewares/ensureAuthenticated.js";
 import { ensureAdmin } from "../../middlewares/ensureAdmin.js";
+import { validateRequest } from "../../middlewares/validateRequest.js";
+import { idParamSchema } from "../../shared/validators/common.schemas.js";
+import { createServicoSchema, updateServicoSchema } from "./servico.schemas.js";
 
 const router = Router();
 const controller = new ServicoController();
@@ -147,6 +150,7 @@ router.post(
   uploadConfig.single("imagem"),
   handleMulterError,
   validateRealFileType,
+  validateRequest(createServicoSchema),
   controller.createServico
 );
 
@@ -219,9 +223,9 @@ router.get("/", ensureAuthenticated, controller.getAllServicos);
  *       400:
  *         description: Erro na remoção
  */
-router.get("/:id", ensureAuthenticated, controller.getServicoById);
-router.put("/:id", ensureAuthenticated, ensureAdmin, controller.updateServico);
-router.delete("/:id", ensureAuthenticated, ensureAdmin, controller.deleteServico);
+router.get("/:id", ensureAuthenticated, validateRequest(idParamSchema), controller.getServicoById);
+router.put("/:id", ensureAuthenticated, ensureAdmin, validateRequest(updateServicoSchema), controller.updateServico);
+router.delete("/:id", ensureAuthenticated, ensureAdmin, validateRequest(idParamSchema), controller.deleteServico);
 
 /**
  * @swagger
@@ -265,6 +269,7 @@ router.patch(
   "/:id/imagem",
   ensureAuthenticated,
   ensureAdmin,
+  validateRequest(idParamSchema),
   uploadConfig.single("imagem"),
   handleMulterError,
   validateRealFileType,

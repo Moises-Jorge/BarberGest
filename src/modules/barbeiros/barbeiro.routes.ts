@@ -5,6 +5,8 @@ import { ensureAuthenticated } from "../../middlewares/ensureAuthenticated.js";
 import { ensureAdmin } from "../../middlewares/ensureAdmin.js";
 import { ensureOwnerOrAdmin } from "../../middlewares/ensureOwnerOrAdmin.js";
 import { validateRequest } from "../../middlewares/validateRequest.js";
+import { idParamSchema } from "../../shared/validators/common.schemas.js";
+import { ensureAdminForIsAdmin } from "../../middlewares/ensureAdminForIsAdmin.js";
 import { createBarbeiroSchema, updateBarbeiroSchema } from "./barbeiros.schema.js";
 
 const router = Router();
@@ -225,9 +227,9 @@ router.get("/", ensureAuthenticated, controller.getAll);
  *       400:
  *         description: Erro ao remover
  */
-router.get("/:id", ensureAuthenticated, controller.getById);
-router.put("/:id", ensureAuthenticated, ensureOwnerOrAdmin, validateRequest(updateBarbeiroSchema), controller.update);
-router.delete("/:id", ensureAuthenticated, ensureOwnerOrAdmin, controller.delete);
+router.get("/:id", ensureAuthenticated, validateRequest(idParamSchema), controller.getById);
+router.put("/:id", ensureAuthenticated, ensureOwnerOrAdmin, validateRequest(updateBarbeiroSchema), ensureAdminForIsAdmin, controller.update);
+router.delete("/:id", ensureAuthenticated, ensureOwnerOrAdmin, validateRequest(idParamSchema), controller.delete);
 
 /**
  * @swagger
@@ -271,6 +273,7 @@ router.patch(
   "/:id/imagem",
   ensureAuthenticated, 
   ensureOwnerOrAdmin,
+  validateRequest(idParamSchema),
   uploadConfig.single("imagem"),
   handleMulterError,
   validateRealFileType,

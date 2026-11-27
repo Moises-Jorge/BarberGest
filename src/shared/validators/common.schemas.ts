@@ -60,3 +60,8 @@ export const booleanSchema = z.union(
     [z.boolean(), z.stringbool({ truthy: ["true"], falsy: ["false"] })],
     { error: "O valor deve ser true ou false." },
 );
+
+// Para rotas que só recebem o ID no caminho
+export const idParamSchema = z.object({
+    params: uuidParamSchema,
+});
