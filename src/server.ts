@@ -8,6 +8,7 @@ import clienteRoutes from './modules/clientes/cliente.routes.js';
 import servicoRoutes from './modules/servicos/servico.routes.js';
 import fs from "fs";
 import { UPLOADS_FOLDER } from './config/upload.js';
+import { errorHandler } from './middlewares/errorHandler.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -17,6 +18,7 @@ if (!fs.existsSync(UPLOADS_FOLDER)) {
   fs.mkdirSync(UPLOADS_FOLDER, { recursive: true });
 }
 
+app.disable('x-powered-by');
 app.use(cors());
 app.use(express.json());
 
@@ -24,7 +26,9 @@ app.use(express.json());
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec));
 
 //Rota para aceder as imagens salvas
-app.use("/files", express.static(UPLOADS_FOLDER));
+app.use("/files", express.static(UPLOADS_FOLDER, {
+  setHeaders: (res) => res.setHeader("X-Content-Type-Options", "nosniff"),
+}));
 
 // Rotas da API
 
@@ -42,6 +46,9 @@ app.use('/api/servicos', servicoRoutes);
 app.get('/', (req, res) => {
   res.json({ message: 'Hello, World!' });
 });
+
+// Tem de ser o último middleware
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`Servidor a rodar em http://localhost:${PORT}`);

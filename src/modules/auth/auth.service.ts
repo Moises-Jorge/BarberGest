@@ -1,3 +1,5 @@
+import { AppError } from "../../shared/errors/AppError.js";
+import { randomUUID } from "node:crypto";
 import bcrypt from "bcryptjs";
 import jwt  from "jsonwebtoken";
 import { prisma } from "../../database/prisma.js"
@@ -18,13 +20,13 @@ export class AuthService {
         const accessToken = jwt.sign(
             { id: userId, role, isAdmin },
             accessSecret,
-            { expiresIn: accessExpires }
+            { expiresIn: accessExpires as NonNullable<jwt.SignOptions["expiresIn"]>, jwtid: randomUUID() }
         );
 
         const refreshToken = jwt.sign(
             { id: userId, role },
             refreshSecret,
-            { expiresIn: refreshExpires }
+            { expiresIn: refreshExpires as NonNullable<jwt.SignOptions["expiresIn"]>, jwtid: randomUUID() }
         );
 
         return { accessToken, refreshToken }
@@ -36,17 +38,28 @@ export class AuthService {
 
         const tokenHash = hashToken(token);
 
-        if (role === "CLIENTE") {
-            await prisma.refreshToken.deleteMany({ where: { clienteId: userId } });
-            await prisma.refreshToken.create({
-                data: { token: tokenHash, clienteId: userId, expiresAt },
+        const owner = role === "CLIENTE" ? { clienteId: userId } : { barbeiroId: userId };
+
+        await prisma.$transaction(async (tx) => {
+            // bloqueia o utilizador: logins simultâneos são tratados um de cada vez
+            if (role === "CLIENTE") {
+                await tx.$queryRaw`SELECT id FROM clientes WHERE id = ${userId} FOR UPDATE`;
+            } else {
+                await tx.$queryRaw`SELECT id FROM barbeiros WHERE id = ${userId} FOR UPDATE`;
+            }
+
+            await tx.refreshToken.deleteMany({ where: owner });
+            await tx.refreshToken.create({
+                data: { token: tokenHash, expiresAt, ...owner },
             });
-        } else {
-            await prisma.refreshToken.deleteMany({ where: { barbeiroId: userId } });
-            await prisma.refreshToken.create({
-                data: { token: tokenHash, barbeiroId: userId, expiresAt },
-            });
-        }
+        });
+    }
+
+    // Gera o par de tokens e guarda o refresh token (substitui a sessão anterior)
+    public async createSession(userId: string, role: "CLIENTE" | "BARBEIRO", isAdmin: boolean): Promise<RefreshTokenResponse> {
+        const tokens = this.generateTokens(userId, role, isAdmin);
+        await this.saveRefreshToken(userId, role, tokens.refreshToken);
+        return tokens;
     }
 
     public async loginCliente(data: LoginDTO): Promise<AuthResponse> {
@@ -55,14 +68,13 @@ export class AuthService {
         });
 
         if (!cliente)
-            throw new Error("Credencias Inválidas.");
+            throw new AppError("Credenciais inválidas.", 401);
 
         const senhaVal = await bcrypt.compare(data.senha, cliente.senha);
         if (!senhaVal)
-            throw new Error("Credencias Inválidas");
+            throw new AppError("Credenciais inválidas.", 401);
 
-        const { accessToken, refreshToken } = this.generateTokens(cliente.id, "CLIENTE", false);
-        await this.saveRefreshToken(cliente.id, "CLIENTE", refreshToken);
+        const { accessToken, refreshToken } = await this.createSession(cliente.id, "CLIENTE", false);
 
         return {
             user: {
@@ -83,14 +95,16 @@ export class AuthService {
         });
 
         if (!barbeiro) 
-            throw new Error("Credencias Inválidas");
+            throw new AppError("Credenciais inválidas.", 401);
 
         const senhaVal = await bcrypt.compare(data.senha, barbeiro.senha);
         if (!senhaVal)
-            throw new Error("Credencias Inválidas");
+            throw new AppError("Credenciais inválidas.", 401);
 
-        const { accessToken, refreshToken } = this.generateTokens(barbeiro.id, "BARBEIRO", barbeiro.isAdmin);
-        await this.saveRefreshToken(barbeiro.id, "BARBEIRO", refreshToken);
+        if (!barbeiro.ativo)
+            throw new AppError("Conta inactiva. Contacte o administrador.", 403);
+
+        const { accessToken, refreshToken } = await this.createSession(barbeiro.id, "BARBEIRO", barbeiro.isAdmin);
 
         return {
             user: {
@@ -115,11 +129,11 @@ export class AuthService {
         });
 
         if (!storedToken)
-            throw new Error("Refresh Token inválido ou revogado.");
+            throw new AppError("Refresh token inválido ou expirado.", 401);
 
         if (new Date() > storedToken.expiresAt) {
             await prisma.refreshToken.delete({ where: { id: storedToken.id } });
-            throw new Error("Sessão expirada. Faça login novamente.");
+            throw new AppError("Sessão expirada. Faça login novamente.", 401);
         }
 
         const refreshSecret = process.env.REFRESH_TOKEN_SECRET;
@@ -130,7 +144,12 @@ export class AuthService {
             jwt.verify(tokenEnviado, refreshSecret);
         } catch {
             await prisma.refreshToken.delete({ where: { id: storedToken.id } });
-            throw new Error("Refresh Token inválido.");
+            throw new AppError("Refresh token inválido ou expirado.", 401);
+        }
+
+        if (storedToken.barbeiro && !storedToken.barbeiro.ativo) {
+            await prisma.refreshToken.delete({ where: { id: storedToken.id } });
+            throw new AppError("Conta inactiva. Contacte o administrador.", 403);
         }
 
         let userId = "";
@@ -146,13 +165,7 @@ export class AuthService {
             isAdmin = storedToken.barbeiro.isAdmin;
         }
 
-        const { accessToken, refreshToken: newRefreshToken } = this.generateTokens(userId, role, isAdmin);
-        await this.saveRefreshToken(userId, role, newRefreshToken);
-
-        return {
-            accessToken,
-            refreshToken: newRefreshToken,
-        };
+        return this.createSession(userId, role, isAdmin);
     }
 
     public async logout(tokenEnviado: string): Promise<void> {
@@ -170,7 +183,7 @@ export class AuthService {
             });
 
             if (!cliente) 
-                throw new Error("Cliente não encontrado.");
+                throw new AppError("Cliente não encontrado.", 404);
 
             return { ...cliente, role: "CLIENTE" };
         } else {
@@ -180,7 +193,7 @@ export class AuthService {
             });
 
             if (!barbeiro) 
-                throw new Error("Barbeiro não encontrado.");
+                throw new AppError("Barbeiro não encontrado.", 404);
 
             return { ...barbeiro, role: "BARBEIRO" };
         }

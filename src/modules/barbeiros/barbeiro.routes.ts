@@ -1,9 +1,13 @@
 import { Router } from "express";
 import { BarbeiroController } from "./barbeiro.controller.js";
-import { handleMulterError, uploadConfig, validateRealFileType } from "../../config/upload.js";
+import { handleMulterError, uploadConfig, validateRealFileType, removeUploadOnError, ignoreEmptyImageField } from "../../config/upload.js";
 import { ensureAuthenticated } from "../../middlewares/ensureAuthenticated.js";
 import { ensureAdmin } from "../../middlewares/ensureAdmin.js";
 import { ensureOwnerOrAdmin } from "../../middlewares/ensureOwnerOrAdmin.js";
+import { validateRequest } from "../../middlewares/validateRequest.js";
+import { idParamSchema } from "../../shared/validators/common.schemas.js";
+import { ensureAdminForIsAdmin } from "../../middlewares/ensureAdminForIsAdmin.js";
+import { createBarbeiroSchema, updateBarbeiroSchema } from "./barbeiros.schema.js";
 
 const router = Router();
 const controller = new BarbeiroController();
@@ -68,10 +72,10 @@ const controller = new BarbeiroController();
  *           type: string
  *           nullable: true
  *           example: "http://localhost:3000/files/perfil.png"
- *         createdAt:
+ *         created_at:
  *           type: string
  *           format: date-time
- *         updatedAt:
+ *         updated_at:
  *           type: string
  *           format: date-time
  */
@@ -129,6 +133,12 @@ const controller = new BarbeiroController();
  *               $ref: '#/components/schemas/BarbeiroResponse'
  *       400:
  *         description: Erro na validação dos dados
+ *       401:
+ *         description: Não autenticado ou token inválido
+ *       403:
+ *         description: Sem permissão
+ *       409:
+ *         description: Já existe um registo com este telefone
  *   get:
  *     summary: Retorna a lista de todos os barbeiros
  *     tags: [Barbeiros]
@@ -141,14 +151,19 @@ const controller = new BarbeiroController();
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/BarbeiroResponse'
+ *       401:
+ *         description: Não autenticado ou token inválido
  */
 router.post(
   "/",
   ensureAuthenticated,
   ensureAdmin,
+  removeUploadOnError,
   uploadConfig.single("imagem"),
   handleMulterError,
   validateRealFileType,
+  ignoreEmptyImageField,
+  validateRequest(createBarbeiroSchema),
   controller.create
 );
 
@@ -176,6 +191,10 @@ router.get("/", ensureAuthenticated, controller.getAll);
  *               $ref: '#/components/schemas/BarbeiroResponse'
  *       404:
  *         description: Barbeiro não encontrado
+ *       400:
+ *         description: Dados inválidos
+ *       401:
+ *         description: Não autenticado ou token inválido
  *   put:
  *     summary: Atualiza os dados de um barbeiro
  *     tags: [Barbeiros]
@@ -207,6 +226,14 @@ router.get("/", ensureAuthenticated, controller.getAll);
  *         description: Barbeiro atualizado com sucesso
  *       400:
  *         description: Erro na atualização
+ *       401:
+ *         description: Não autenticado ou token inválido
+ *       403:
+ *         description: Sem permissão
+ *       404:
+ *         description: Registo não encontrado
+ *       409:
+ *         description: Telefone em uso ou último administrador
  *   delete:
  *     summary: Remove um barbeiro
  *     tags: [Barbeiros]
@@ -221,10 +248,18 @@ router.get("/", ensureAuthenticated, controller.getAll);
  *         description: Barbeiro removido com sucesso
  *       400:
  *         description: Erro ao remover
+ *       401:
+ *         description: Não autenticado ou token inválido
+ *       403:
+ *         description: Apenas o próprio barbeiro ou um administrador
+ *       404:
+ *         description: Registo não encontrado
+ *       409:
+ *         description: Não é possível remover o último administrador
  */
-router.get("/:id", ensureAuthenticated, controller.getById);
-router.put("/:id", ensureAuthenticated, ensureOwnerOrAdmin, controller.update);
-router.delete("/:id", ensureAuthenticated, ensureOwnerOrAdmin, controller.delete);
+router.get("/:id", ensureAuthenticated, validateRequest(idParamSchema), controller.getById);
+router.put("/:id", ensureAuthenticated, ensureOwnerOrAdmin, validateRequest(updateBarbeiroSchema), ensureAdminForIsAdmin, controller.update);
+router.delete("/:id", ensureAuthenticated, ensureOwnerOrAdmin, validateRequest(idParamSchema), controller.delete);
 
 /**
  * @swagger
@@ -263,11 +298,17 @@ router.delete("/:id", ensureAuthenticated, ensureOwnerOrAdmin, controller.delete
  *         description: Nenhuma imagem enviada ou formato inválido
  *       404:
  *         description: Barbeiro não encontrado
+ *       401:
+ *         description: Não autenticado ou token inválido
+ *       403:
+ *         description: Sem permissão
  */
 router.patch(
   "/:id/imagem",
   ensureAuthenticated, 
   ensureOwnerOrAdmin,
+  validateRequest(idParamSchema),
+  removeUploadOnError,
   uploadConfig.single("imagem"),
   handleMulterError,
   validateRealFileType,

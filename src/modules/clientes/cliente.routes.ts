@@ -1,9 +1,12 @@
 import { Router } from "express";
 import { ClienteController } from "./cliente.controller.js";
-import { handleMulterError, uploadConfig, validateRealFileType } from "../../config/upload.js";
+import { handleMulterError, uploadConfig, validateRealFileType, removeUploadOnError, ignoreEmptyImageField } from "../../config/upload.js";
 import { ensureAdmin } from "../../middlewares/ensureAdmin.js";
 import { ensureAuthenticated } from "../../middlewares/ensureAuthenticated.js";
 import { ensureOwnerOrAdmin } from "../../middlewares/ensureOwnerOrAdmin.js";
+import { validateRequest } from "../../middlewares/validateRequest.js";
+import { idParamSchema } from "../../shared/validators/common.schemas.js";
+import { createClienteSchema, updateClienteSchema } from "./cliente.schemas.js";
 
 const router = Router();
 const controller = new ClienteController();
@@ -31,6 +34,17 @@ const controller = new ClienteController();
  *         imagemUrl:
  *           type: string
  *           example: "http://localhost:3000/files/cliente.png"
+ *     ClienteCriadoResponse:
+ *       allOf:
+ *         - $ref: '#/components/schemas/ClienteResponse'
+ *         - type: object
+ *           properties:
+ *             accessToken:
+ *               type: string
+ *               description: Token JWT de curta duração
+ *             refreshToken:
+ *               type: string
+ *               description: Token JWT de longa duração
  *     ClienteResponse:
  *       type: object
  *       properties:
@@ -47,10 +61,10 @@ const controller = new ClienteController();
  *           type: string
  *           nullable: true
  *           example: "http://localhost:3000/files/cliente.png"
- *         createdAt:
+ *         created_at:
  *           type: string
  *           format: date-time
- *         updatedAt:
+ *         updated_at:
  *           type: string
  *           format: date-time
  */
@@ -94,9 +108,11 @@ const controller = new ClienteController();
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ClienteResponse'
+ *               $ref: '#/components/schemas/ClienteCriadoResponse'
  *       400:
  *         description: Erro na validação dos dados ou telefone em uso
+ *       409:
+ *         description: Já existe um registo com este telefone
  *   get:
  *     summary: Retorna a lista de todos os clientes
  *     tags: [Clientes]
@@ -109,12 +125,19 @@ const controller = new ClienteController();
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/ClienteResponse'
+ *       401:
+ *         description: Não autenticado ou token inválido
+ *       403:
+ *         description: Sem permissão
  */
 router.post(
   "/",
+  removeUploadOnError,
   uploadConfig.single("imagem"),
   handleMulterError,
   validateRealFileType,
+  ignoreEmptyImageField,
+  validateRequest(createClienteSchema),
   controller.createCliente
 );
 
@@ -142,6 +165,12 @@ router.get("/", ensureAuthenticated, ensureAdmin, controller.getClientes);
  *               $ref: '#/components/schemas/ClienteResponse'
  *       404:
  *         description: Cliente não encontrado
+ *       400:
+ *         description: Dados inválidos
+ *       401:
+ *         description: Não autenticado ou token inválido
+ *       403:
+ *         description: Sem permissão
  *   put:
  *     summary: Atualiza os dados de um cliente
  *     tags: [Clientes]
@@ -169,6 +198,14 @@ router.get("/", ensureAuthenticated, ensureAdmin, controller.getClientes);
  *         description: Cliente atualizado com sucesso
  *       400:
  *         description: Erro na atualização
+ *       401:
+ *         description: Não autenticado ou token inválido
+ *       403:
+ *         description: Sem permissão
+ *       404:
+ *         description: Registo não encontrado
+ *       409:
+ *         description: Já existe um registo com este telefone
  *   delete:
  *     summary: Remove um cliente
  *     tags: [Clientes]
@@ -183,10 +220,16 @@ router.get("/", ensureAuthenticated, ensureAdmin, controller.getClientes);
  *         description: Cliente removido com sucesso
  *       400:
  *         description: Erro ao remover
+ *       401:
+ *         description: Não autenticado ou token inválido
+ *       403:
+ *         description: Sem permissão
+ *       404:
+ *         description: Registo não encontrado
  */
-router.get("/:id", ensureAuthenticated, controller.getClienteById);
-router.put("/:id", ensureAuthenticated, ensureOwnerOrAdmin, controller.updateCliente);
-router.delete("/:id", ensureAuthenticated, ensureOwnerOrAdmin, controller.deleteCliente);
+router.get("/:id", ensureAuthenticated, ensureOwnerOrAdmin, validateRequest(idParamSchema), controller.getClienteById);
+router.put("/:id", ensureAuthenticated, ensureOwnerOrAdmin, validateRequest(updateClienteSchema), controller.updateCliente);
+router.delete("/:id", ensureAuthenticated, ensureOwnerOrAdmin, validateRequest(idParamSchema), controller.deleteCliente);
 
 /**
  * @swagger
@@ -225,11 +268,17 @@ router.delete("/:id", ensureAuthenticated, ensureOwnerOrAdmin, controller.delete
  *         description: Nenhuma imagem enviada ou formato inválido
  *       404:
  *         description: Cliente não encontrado
+ *       401:
+ *         description: Não autenticado ou token inválido
+ *       403:
+ *         description: Sem permissão
  */
 router.patch(
   "/:id/imagem",
   ensureAuthenticated, 
   ensureOwnerOrAdmin,
+  validateRequest(idParamSchema),
+  removeUploadOnError,
   uploadConfig.single("imagem"),
   handleMulterError,
   validateRealFileType,

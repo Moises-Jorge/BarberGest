@@ -1,6 +1,9 @@
 import { Router } from "express";
 import { AuthController } from "./auth.controller.js";
 import { ensureAuthenticated } from "../../middlewares/ensureAuthenticated.js";
+import { loginSchema, refreshTokenSchema } from "./auth.schemas.js";
+import { validateRequest } from "../../middlewares/validateRequest.js";
+import { loginRateLimit } from "../../middlewares/loginRateLimit.js";
 
 const router = Router();
 const controller = new AuthController();
@@ -77,8 +80,12 @@ const controller = new AuthController();
  *               $ref: '#/components/schemas/AuthResponse'
  *       401:
  *         description: Credenciais inválidas
+ *       400:
+ *         description: Dados inválidos
+ *       429:
+ *         description: Demasiadas tentativas de login
  */
-router.post("/login/cliente", controller.loginCliente);
+router.post("/login/cliente", validateRequest(loginSchema), loginRateLimit, controller.loginCliente);
 
 /**
  * @swagger
@@ -100,8 +107,14 @@ router.post("/login/cliente", controller.loginCliente);
  *               $ref: '#/components/schemas/AuthResponse'
  *       401:
  *         description: Credenciais inválidas
+ *       400:
+ *         description: Dados inválidos
+ *       403:
+ *         description: Conta inactiva
+ *       429:
+ *         description: Demasiadas tentativas de login
  */
-router.post("/login/barbeiro", controller.loginBarbeiro);
+router.post("/login/barbeiro", validateRequest(loginSchema), loginRateLimit, controller.loginBarbeiro);
 
 /**
  * @swagger
@@ -120,8 +133,10 @@ router.post("/login/barbeiro", controller.loginBarbeiro);
  *         description: Novo par de tokens gerado com sucesso
  *       401:
  *         description: Refresh token inválido ou expirado
+ *       400:
+ *         description: Dados inválidos
  */
-router.post("/refresh", controller.refreshToken);
+router.post("/refresh", validateRequest(refreshTokenSchema), controller.refreshToken);
 
 /**
  * @swagger
@@ -138,8 +153,10 @@ router.post("/refresh", controller.refreshToken);
  *     responses:
  *       204:
  *         description: Sessão encerrada com sucesso
+ *       400:
+ *         description: Dados inválidos
  */
-router.post("/logout", controller.logout);
+router.post("/logout", validateRequest(refreshTokenSchema), controller.logout);
 
 /**
  * @swagger

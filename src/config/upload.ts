@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 import type { Request, Response, NextFunction } from "express";
 import { fileTypeFromFile } from "file-type";
 import fs from "fs";
+import { AppError } from "../shared/errors/AppError.js";
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -14,10 +15,10 @@ export const UPLOADS_FOLDER = path.resolve(__dirname, "..", "..", "uploads");
 
 export const storage = multer.diskStorage({
     destination: UPLOADS_FOLDER,
-    filename(_req, file, callback) {
+    filename(_req, _file, callback) {
         const fileHash = crypto.randomBytes(10).toString("hex");
-        const fileName = `${fileHash}-${file.originalname.replace(/\s+/g, "_")}`;
-        return callback(null, fileName);
+        // o nome original é ignorado; a extensão definitiva vem do conteúdo (validateRealFileType)
+        return callback(null, `${fileHash}.tmp`);
     },
 });
 
@@ -32,7 +33,7 @@ export const uploadConfig = multer({
         if (allowedMimes.includes(file.mimetype)) {
             callback(null, true);
         } else {
-            callback(new Error("Formato de ficheiro inválido. Envie apenas JPG, PNG ou WEBP."));
+            callback(new AppError("Formato de ficheiro inválido. Envie apenas JPG, PNG ou WEBP."));
         }
     },
 });
@@ -54,9 +55,13 @@ export const handleMulterError = (
     }
 
     if (err) {
-        return res.status(400).json({ error: err.message });
+        // erros do parser multipart; os restantes seguem para o errorHandler
+        if (/multipart|boundary|end of form|part header/i.test(err.message)) {
+            return res.status(400).json({ error: "O pedido multipart é inválido." });
+        }
+        return next(err);
     }
-    
+
     return next();
 };
 
@@ -85,6 +90,12 @@ export const validateRealFileType = async (
       });
     }
 
+    const finalName = `${path.parse(filePath).name}.${type.ext}`;
+    const finalPath = path.join(path.dirname(filePath), finalName);
+    fs.renameSync(filePath, finalPath);
+    req.file.filename = finalName;
+    req.file.path = finalPath;
+
     next();
   } catch (error) {
     if (req.file?.path && fs.existsSync(req.file.path)) {
@@ -92,4 +103,24 @@ export const validateRealFileType = async (
     }
     return res.status(500).json({ error: "Erro ao validar o formato da imagem." });
   }
+};
+
+// Apaga o ficheiro gravado pelo multer quando o pedido termina com erro
+export const removeUploadOnError = (req: Request, res: Response, next: NextFunction) => {
+  res.on("finish", () => {
+    // em erros do multer o req.file pode existir sem path
+    if (req.file?.path && res.statusCode >= 400) {
+      // o ficheiro pode já ter sido apagado por outro middleware
+      fs.unlink(req.file.path, () => {});
+    }
+  });
+  return next();
+};
+
+// O Swagger e outros clientes enviam "imagem" como texto vazio quando não se escolhe ficheiro
+export const ignoreEmptyImageField = (req: Request, _res: Response, next: NextFunction) => {
+  if (req.body?.imagem === "") {
+    delete req.body.imagem;
+  }
+  return next();
 };
